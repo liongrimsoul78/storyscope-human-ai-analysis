@@ -1,0 +1,59 @@
+Documentation License — Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 LION LAB
+
+The original documentation authored by LION LAB in this repository is
+licensed under the Creative Commons Attribution 4.0 International License
+(CC BY 4.0).
+
+You are free to:
+
+- Share — copy and redistribute the material in any medium or format.
+- Adapt — remix, transform, and build upon the material for any purpose,
+  even commercially.
+
+Under the following terms:
+
+- Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made. You may do so in any reasonable
+  manner, but not in any way that suggests the licensor endorses you or your
+  use.
+- No additional restrictions — You may not apply legal terms or technological
+  measures that legally restrict others from doing anything the license
+  permits.
+
+Suggested attribution:
+
+  "StoryScope Human-AI Analysis documentation, LION LAB, licensed under
+  CC BY 4.0." Include a link to this repository and to the license, and
+  indicate whether changes were made.
+
+License text:
+
+  https://creativecommons.org/licenses/by/4.0/
+  https://creativecommons.org/licenses/by/4.0/legalcode
+
+Scope
+
+This license applies only to documentation originally authored by LION LAB.
+It does not apply to:
+
+- `SKILL.md`, which is original LION LAB instruction text licensed under the
+  MIT license (`LICENSE`);
+- the StoryScope paper or text quoted or summarized from it;
+- the official StoryScope repository or its documentation;
+- the official taxonomy, corpus, model weights, or other third-party assets;
+- any material identified in THIRD_PARTY_NOTICES.md as belonging to a third
+  party.
+
+Third-party material remains under its own terms. Quotations and summaries of
+the StoryScope paper are provided for attribution, commentary, and scientific
+provenance; the paper itself is distributed by its authors under CC0 1.0 as
+identified in THIRD_PARTY_NOTICES.md.
+
+Values transcribed from the StoryScope paper's Table 16 retain the
+provenance and license of that underlying third-party material. CC BY 4.0
+applies only to LION LAB's original prose, selection, and arrangement in these
+documents and does not relicense or restrict the underlying CC0 material.
+
+No endorsement by the StoryScope authors or by any third party is implied.

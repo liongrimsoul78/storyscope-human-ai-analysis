@@ -1,0 +1,31 @@
+feature_name,paper_dimension_code,paper_dimension_name,lion_lab_cluster,research_direction_or_option,measurement_type,human_value_or_prevalence,ai_value_or_prevalence,paper_gap_human_minus_ai_or_note,interpretive_caution
+Thematic Explicitness and Moralizing,SIT,situatedness,Thematic framing,AI,scale 1–5,3.28,3.94,-0.65,"AI stories state themes/morals more explicitly on average; group mean, not threshold."
+Dominant Emotional Expression,AGENT,agents,Emotional/sensory expression,AI: embodied; Human: explicit labels,categorical,embodied 38%; explicit labels 29%,embodied 81%; explicit labels 8%,embodied -42; explicit labels +21,Two response values of one feature; never count as two independent features.
+Thematic Unity,PLT,plot,Thematic framing,AI,scale 1–5,4.41,4.74,-0.33,Theme integration is related to thematic explicitness; group only once per cluster.
+Dominant Sensory Modalities,SET,setting,Emotional/sensory expression,AI: olfactory,multi-select option,57% olfactory,82% olfactory,-26 pp,Only count if sensory modality is actually assessable in a sufficiently developed story.
+Character Introduction,AGENT,agents,Character presentation,AI: external description,categorical option,30%,52%,-22 pp,Do not infer from a fragment that starts after character introduction.
+Setting as Psychological Mirror,SET,setting,Emotional/sensory expression,AI,scale 1–5,3.58,4.07,-0.49,Requires enough setting and character interiority; otherwise not assessable.
+Continuity of Main Causal Chain,EVT,events,Causal/plot architecture,AI,scale 1–5,3.92,4.20,-0.28,A tidy causal chain is not automatically better or worse; interpret in genre.
+Sensory Density,SET,setting,Emotional/sensory expression,AI,scale 1–5,3.66,3.93,-0.26,Small mean difference; simple absence in short text has no direction.
+Agency in Resolution,PLT,plot,Causal/plot architecture,AI: protagonist choice,categorical option,46% protagonist choice,69% protagonist choice,-23 pp,Only assess when a narrative resolution is actually present.
+Narratorial Thematic Commentary,SIT,situatedness,Thematic framing,AI: yes,binary option,52% yes,77% yes,-25 pp,Keep distinct from character speech; related to but not independent of thematic explicitness.
+Opening Spatial Grounding,SET,setting,Space and setting,AI,ordinal mean,2.12,2.33,-0.20,"Only assess a true narrative opening, not an excerpt beginning mid-scene."
+Dialogue Function,PER,perspective,Thematic framing,AI: philosophical debate,multi-select option,34%,59%,-25 pp,Assess the function of existing dialogue; no dialogue in a microtext is not a directional cue.
+Spatial Granularity Level,SET,setting,Space and setting,AI,ordinal mean,2.27,2.53,-0.26,Small mean difference; require text with meaningful spatial description.
+Subplot Integration,PLT,plot,Causal/plot architecture,AI: no subplots; Human: thematically parallel,categorical,no subplots 57%; thematically parallel 42%,no subplots 79%; thematically parallel 21%,no subplots -22; thematically parallel +22,One categorical feature with alternative values. ‘No subplots’ is not assessable in a short fragment.
+Moral / Philosophical Weighting,SIT,situatedness,Thematic framing,AI,scale 1–5,3.26,3.68,-0.42,Overlaps with thematic framing; group at cluster level.
+Reference Explicitness,SIT,situatedness,Intertextuality,AI: implicit echoes; Human: balanced mix,categorical,implicit echoes 50%; balanced mix 37%,implicit echoes 72%; balanced mix 16%,implicit echoes -22; balanced mix +21,One categorical feature; its two option values are not separate features.
+Environmental and Ecological Emphasis,SET,setting,Emotional/sensory expression,AI,scale 1–5,2.83,3.21,-0.38,May be genre-dependent; do not expect ecology in every story.
+Mode of Resolution,EVT,events,Causal/plot architecture,AI: internal understanding,categorical option,27%,47%,-21 pp,Only assess if the main event chain has a resolution.
+Pre-Threat Character Investment,REV,revelation,Character presentation,AI,scale 1–5,2.76,2.99,-0.23,Requires a story with a recognizable threat/jeopardy structure.
+Depth of Interior Access,PER,perspective,Character presentation,AI,scale 1–5,3.67,3.93,-0.26,Access to inner life is not the same as explicit emotion labeling.
+Intertextual Strategy Types,SIT,situatedness,Intertextuality,Human: explicit named reference,multi-select option,47%,24%,+23 pp,"A named reference must be identifiable, not guessed from a generic trope."
+Frequency of Direct Reader Address,PER,perspective,Reader engagement,Human,ordinal mean,0.28,0.07,+0.21,Direct address is different from generic second-person phrasing.
+Depth of Recontextualization After Surprise,REV,revelation,Temporal/revelatory structure,Human,scale 1–5,3.28,2.95,+0.34,Requires a genuine revelation that changes interpretation of earlier events.
+Dialogue-to-Narration Proportion,PER,perspective,Reader engagement,Human,scale 1–5,2.95,2.70,+0.24,Only meaningful when dialogue and narration both have enough opportunity to occur.
+Fourth-Wall Permeability,SIT,situatedness,Reader engagement,Human,ordinal mean,0.67,0.39,+0.28,Do not confuse dialogue to an in-world listener with direct reader address.
+Degree of Chronological Discontinuity,TMP,temporal_structure,Temporal/revelatory structure,Human,scale 1–5,2.40,2.12,+0.28,Small average difference. Linear chronology alone is not decisive; absence of flashbacks in short text is not evidence.
+Location Variety Scope,SET,setting,Space and setting,Human,ordinal mean,1.34,1.08,+0.26,Requires a complete story with opportunity to move across locations.
+Anachrony Intensity,TMP,temporal_structure,Temporal/revelatory structure,Human,scale 1–5,2.58,2.31,+0.27,"Explicit flashbacks/flash-forwards; small average difference, not a requirement for quality."
+Moral Polarity Toward Protagonist,PLT,plot,Causal/plot architecture,Human: ambivalent/mixed,categorical option,59%,38%,+21 pp,"Moral ambiguity may be intentional, but is not inherently better or proof of human authorship."
+Nonlinear Framing for Delayed Disclosure,REV,revelation,Temporal/revelatory structure,Human,scale 1–5,1.96,1.68,+0.28,Requires delayed disclosure and structural time-jumps; a simple linear sequence is not an authorship verdict.

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local archives and backups
+*.zip
+storyscope-human-ai-analysis.backup-*/
+
+# CI export directory
+_export/
+
+# Excluded from the public distribution
+AUDIT_REPORT_v0.2.3.md
+validation/backup_migration.ps1

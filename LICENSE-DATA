@@ -1,0 +1,43 @@
+Derived Data License — CC0 1.0 Universal (Public Domain Dedication)
+
+To the extent possible under law, LION LAB has waived all copyright and
+related or neighboring rights to the original compilation and transcription
+work it created in the files listed below, including the selection,
+arrangement, normalization, and transcription of values from the StoryScope
+paper's Table 16.
+
+This work is published under the Creative Commons CC0 1.0 Universal
+(Public Domain Dedication):
+
+  https://creativecommons.org/publicdomain/zero/1.0/
+  https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+Covered files
+
+- `validation/source_table16_v6.txt`
+- `validation/table16_expected.json`
+- `references/feature-dimension-map.csv`
+
+Scope and limits
+
+- CC0 applies only to LION LAB's original contribution in these files and only
+  to the extent that the underlying material is itself distributed under
+  CC0 1.0. The StoryScope paper (Russell et al., COLM 2026,
+  arXiv:2604.03136) is identified as CC0 1.0 in THIRD_PARTY_NOTICES.md.
+- This dedication does not claim authorship of the StoryScope paper or of its
+  Table 16. Attribution and provenance are preserved in
+  `THIRD_PARTY_NOTICES.md`.
+- CC0 does not apply to any third-party material that is not under CC0,
+  including the official StoryScope repository (MIT), the official taxonomy,
+  the original corpus, model weights, or any quoted text whose own terms
+  differ.
+- No endorsement by the StoryScope authors or by any third party is implied.
+- The files are provided "as is", without warranties of any kind. LION LAB is
+  not responsible for errors introduced by reuse or modification.
+- This Skill does not include the Books3 corpus, the story corpus, XGBoost
+  weights, `taxonomy.json`, the original feature-extraction pipeline, or the
+  original evaluation harness.
+
+Attribution is not required under CC0, but it is welcome. The scientific
+source and provenance are documented in THIRD_PARTY_NOTICES.md and
+`references/research-basis.md`.

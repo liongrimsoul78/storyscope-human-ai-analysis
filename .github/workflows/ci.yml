@@ -1,0 +1,57 @@
+name: Validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    # Validate a clean export of tracked files, without .git metadata.
+    working-directory: ${{ github.workspace }}/_export
+
+jobs:
+  validate:
+    name: Validate (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        python:
+          - "3.12"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Export tracked files without .git metadata
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p _export
+          git archive --format=tar HEAD | tar -x -C _export
+
+      - name: Validate 30 features, options, directions, and gaps
+        run: python validation/validate_feature_map.py
+
+      - name: Verify transcription against Table 16 source
+        run: python validation/check_source_table16.py
+
+      - name: Verify SHA-256 manifest (strict)
+        run: python validation/verify_manifest.py --strict
+
+      - name: Run acceptance tests
+        run: python validation/test_acceptance.py

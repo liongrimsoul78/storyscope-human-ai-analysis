@@ -1,0 +1,148 @@
+# Source extract: Russell et al., StoryScope, arXiv:2604.03136v6, Table 16.
+# Copied from the versioned HTML rendering on 2026-11-09.
+# Lines starting with # are provenance notes and are ignored by the checker.
+# Table text follows verbatim, including source abbreviations.
+Feature
+Human
+AI
+Gap
+AI-elevated: Thematic over-determination
+Thematic Explicitness & Moralizing s
+3.28
+3.94
+−-0.65
+Moral / Philosophical Weighting s
+3.26
+3.68
+−-0.42
+Thematic Unity s
+4.41
+4.74
+−-0.33
+Narratorial Thematic Commentary →\rightarrow yes
+52%
+77%
+−-25
+Dialogue Function →\rightarrow philosophical debate
+34%
+59%
+−-25
+Reference Explicitness →\rightarrow implicit echoes
+50%
+72%
+−-22
+AI-elevated: Sensory & embodied performativity
+Emotional Expression →\rightarrow embodied
+38%
+81%
+−-42
+Setting as Psychological Mirror s
+3.58
+4.07
+−-0.49
+Environmental & Ecological Emphasis s
+2.83
+3.21
+−-0.38
+Sensory Modalities →\rightarrow olfactory
+57%
+82%
+−-26
+Sensory Density s
+3.66
+3.93
+−-0.26
+Depth of Interior Access s
+3.67
+3.93
+−-0.26
+AI-elevated: Structural streamlining
+Causal Chain Continuity s
+3.92
+4.20
+−-0.28
+Spatial Granularity o
+2.27
+2.53
+−-0.26
+Agency in Resolution →\rightarrow protagonist choice
+46%
+69%
+−-23
+Character Introduction →\rightarrow external description
+30%
+52%
+−-22
+Subplot Integration →\rightarrow no subplots
+57%
+79%
+−-22
+Resolution Mode →\rightarrow internal understanding
+27%
+47%
+−-21
+Opening Spatial Grounding o
+2.12
+2.33
+−-0.20
+Pre-Threat Character Investment s
+2.76
+2.99
+−-0.23
+Human-elevated: Intertextual richness
+Intertextual Strategy →\rightarrow explicit named reference
+47%
+24%
++23
+Reference Explicitness →\rightarrow balanced mix
+37%
+16%
++21
+Human-elevated: Reader engagement
+Fourth-Wall Permeability o
+0.67
+0.39
++0.28
+Direct Reader Address o
+0.28
+0.07
++0.21
+Human-elevated: Temporal complexity
+Depth of Recontextualization After Surprise s
+3.28
+2.95
++0.34
+Chronological Discontinuity s
+2.40
+2.12
++0.28
+Nonlinear Framing for Delayed Disclosure s
+1.96
+1.68
++0.28
+Anachrony Intensity s
+2.58
+2.31
++0.27
+Human-elevated: Narrative diversity
+Location Variety Scope o
+1.34
+1.08
++0.26
+Dialogue-to-Narration Proportion s
+2.95
+2.70
++0.24
+Subplot Integration →\rightarrow thematically parallel
+42%
+21%
++22
+Moral Polarity →\rightarrow ambivalent/mixed
+59%
+38%
++21
+Emotional Expression →\rightarrow explicit labels
+29%
+8%
++21
+Table 16: Core features separating human from AI writing

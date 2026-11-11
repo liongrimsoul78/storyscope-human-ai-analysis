@@ -1,0 +1,474 @@
+{
+  "source": "Russell et al., StoryScope: Investigating idiosyncrasies in AI fiction, arXiv:2604.03136v6, Table 16.",
+  "table15_note": "Table 15 lists the 13 core human-characterizing features and their response options; it does not contain the Human/AI means or gaps. The 30-feature values are in Table 16.",
+  "rounding_policy": "Published Human, AI and gap values are preserved exactly as printed in Table 16. Where the printed gap differs from the subtraction of displayed values, the option records the arithmetic_gap and a note. Both the displayed values and the published gap are kept; the cause of the difference is not inferred, and the data are not changed to force arithmetic consistency.",
+  "feature_count": 30,
+  "features": [
+    {
+      "feature_name": "Thematic Explicitness and Moralizing",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 3.28,
+          "ai": 3.94,
+          "gap": -0.65,
+          "arithmetic_gap": -0.66,
+          "rounding_note": "3.28 - 3.94 = -0.66 using displayed values; Table 16 prints -0.65. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        }
+      ]
+    },
+    {
+      "feature_name": "Dominant Emotional Expression",
+      "direction": {
+        "embodied": "AI",
+        "explicit labels": "Human"
+      },
+      "direction_text": "AI: embodied; Human: explicit labels",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "embodied",
+          "human": 38,
+          "ai": 81,
+          "gap": -42,
+          "arithmetic_gap": -43,
+          "rounding_note": "38% - 81% = -43 pp using displayed values; Table 16 prints -42. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        },
+        {
+          "option": "explicit labels",
+          "human": 29,
+          "ai": 8,
+          "gap": 21
+        }
+      ]
+    },
+    {
+      "feature_name": "Thematic Unity",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 4.41,
+          "ai": 4.74,
+          "gap": -0.33
+        }
+      ]
+    },
+    {
+      "feature_name": "Dominant Sensory Modalities",
+      "direction": "AI",
+      "direction_text": "AI: olfactory",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "olfactory",
+          "human": 57,
+          "ai": 82,
+          "gap": -26,
+          "arithmetic_gap": -25,
+          "rounding_note": "57% - 82% = -25 pp using displayed values; Table 16 prints -26. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        }
+      ]
+    },
+    {
+      "feature_name": "Character Introduction",
+      "direction": "AI",
+      "direction_text": "AI: external description",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "",
+          "human": 30,
+          "ai": 52,
+          "gap": -22
+        }
+      ]
+    },
+    {
+      "feature_name": "Setting as Psychological Mirror",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 3.58,
+          "ai": 4.07,
+          "gap": -0.49
+        }
+      ]
+    },
+    {
+      "feature_name": "Continuity of Main Causal Chain",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 3.92,
+          "ai": 4.2,
+          "gap": -0.28
+        }
+      ]
+    },
+    {
+      "feature_name": "Sensory Density",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 3.66,
+          "ai": 3.93,
+          "gap": -0.26,
+          "arithmetic_gap": -0.27,
+          "rounding_note": "3.66 - 3.93 = -0.27 using displayed values; Table 16 prints -0.26. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        }
+      ]
+    },
+    {
+      "feature_name": "Agency in Resolution",
+      "direction": "AI",
+      "direction_text": "AI: protagonist choice",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "protagonist choice",
+          "human": 46,
+          "ai": 69,
+          "gap": -23
+        }
+      ]
+    },
+    {
+      "feature_name": "Narratorial Thematic Commentary",
+      "direction": "AI",
+      "direction_text": "AI: yes",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "yes",
+          "human": 52,
+          "ai": 77,
+          "gap": -25
+        }
+      ]
+    },
+    {
+      "feature_name": "Opening Spatial Grounding",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "ordinal_mean",
+      "options": [
+        {
+          "option": "",
+          "human": 2.12,
+          "ai": 2.33,
+          "gap": -0.2,
+          "arithmetic_gap": -0.21,
+          "rounding_note": "2.12 - 2.33 = -0.21 using displayed values; Table 16 prints -0.2. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        }
+      ]
+    },
+    {
+      "feature_name": "Dialogue Function",
+      "direction": "AI",
+      "direction_text": "AI: philosophical debate",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "",
+          "human": 34,
+          "ai": 59,
+          "gap": -25
+        }
+      ]
+    },
+    {
+      "feature_name": "Spatial Granularity Level",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "ordinal_mean",
+      "options": [
+        {
+          "option": "",
+          "human": 2.27,
+          "ai": 2.53,
+          "gap": -0.26
+        }
+      ]
+    },
+    {
+      "feature_name": "Subplot Integration",
+      "direction": {
+        "no subplots": "AI",
+        "thematically parallel": "Human"
+      },
+      "direction_text": "AI: no subplots; Human: thematically parallel",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "no subplots",
+          "human": 57,
+          "ai": 79,
+          "gap": -22
+        },
+        {
+          "option": "thematically parallel",
+          "human": 42,
+          "ai": 21,
+          "gap": 22,
+          "arithmetic_gap": 21,
+          "rounding_note": "42% - 21% = +21 pp using displayed values; Table 16 prints +22. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        }
+      ]
+    },
+    {
+      "feature_name": "Moral / Philosophical Weighting",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 3.26,
+          "ai": 3.68,
+          "gap": -0.42
+        }
+      ]
+    },
+    {
+      "feature_name": "Reference Explicitness",
+      "direction": {
+        "implicit echoes": "AI",
+        "balanced mix": "Human"
+      },
+      "direction_text": "AI: implicit echoes; Human: balanced mix",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "implicit echoes",
+          "human": 50,
+          "ai": 72,
+          "gap": -22
+        },
+        {
+          "option": "balanced mix",
+          "human": 37,
+          "ai": 16,
+          "gap": 21
+        }
+      ]
+    },
+    {
+      "feature_name": "Environmental and Ecological Emphasis",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 2.83,
+          "ai": 3.21,
+          "gap": -0.38
+        }
+      ]
+    },
+    {
+      "feature_name": "Mode of Resolution",
+      "direction": "AI",
+      "direction_text": "AI: internal understanding",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "",
+          "human": 27,
+          "ai": 47,
+          "gap": -21,
+          "arithmetic_gap": -20,
+          "rounding_note": "27% - 47% = -20 pp using displayed values; Table 16 prints -21. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        }
+      ]
+    },
+    {
+      "feature_name": "Pre-Threat Character Investment",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 2.76,
+          "ai": 2.99,
+          "gap": -0.23
+        }
+      ]
+    },
+    {
+      "feature_name": "Depth of Interior Access",
+      "direction": "AI",
+      "direction_text": "AI",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 3.67,
+          "ai": 3.93,
+          "gap": -0.26
+        }
+      ]
+    },
+    {
+      "feature_name": "Intertextual Strategy Types",
+      "direction": "Human",
+      "direction_text": "Human: explicit named reference",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "",
+          "human": 47,
+          "ai": 24,
+          "gap": 23
+        }
+      ]
+    },
+    {
+      "feature_name": "Frequency of Direct Reader Address",
+      "direction": "Human",
+      "direction_text": "Human",
+      "unit": "ordinal_mean",
+      "options": [
+        {
+          "option": "",
+          "human": 0.28,
+          "ai": 0.07,
+          "gap": 0.21
+        }
+      ]
+    },
+    {
+      "feature_name": "Depth of Recontextualization After Surprise",
+      "direction": "Human",
+      "direction_text": "Human",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 3.28,
+          "ai": 2.95,
+          "gap": 0.34,
+          "arithmetic_gap": 0.33,
+          "rounding_note": "3.28 - 2.95 = +0.33 using displayed values; Table 16 prints +0.34. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        }
+      ]
+    },
+    {
+      "feature_name": "Dialogue-to-Narration Proportion",
+      "direction": "Human",
+      "direction_text": "Human",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 2.95,
+          "ai": 2.7,
+          "gap": 0.24,
+          "arithmetic_gap": 0.25,
+          "rounding_note": "2.95 - 2.7 = +0.25 using displayed values; Table 16 prints +0.24. Both the displayed values and the published gap are preserved; the cause of the difference is not inferred."
+        }
+      ]
+    },
+    {
+      "feature_name": "Fourth-Wall Permeability",
+      "direction": "Human",
+      "direction_text": "Human",
+      "unit": "ordinal_mean",
+      "options": [
+        {
+          "option": "",
+          "human": 0.67,
+          "ai": 0.39,
+          "gap": 0.28
+        }
+      ]
+    },
+    {
+      "feature_name": "Degree of Chronological Discontinuity",
+      "direction": "Human",
+      "direction_text": "Human",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 2.4,
+          "ai": 2.12,
+          "gap": 0.28
+        }
+      ]
+    },
+    {
+      "feature_name": "Location Variety Scope",
+      "direction": "Human",
+      "direction_text": "Human",
+      "unit": "ordinal_mean",
+      "options": [
+        {
+          "option": "",
+          "human": 1.34,
+          "ai": 1.08,
+          "gap": 0.26
+        }
+      ]
+    },
+    {
+      "feature_name": "Anachrony Intensity",
+      "direction": "Human",
+      "direction_text": "Human",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 2.58,
+          "ai": 2.31,
+          "gap": 0.27
+        }
+      ]
+    },
+    {
+      "feature_name": "Moral Polarity Toward Protagonist",
+      "direction": "Human",
+      "direction_text": "Human: ambivalent/mixed",
+      "unit": "percent",
+      "options": [
+        {
+          "option": "",
+          "human": 59,
+          "ai": 38,
+          "gap": 21
+        }
+      ]
+    },
+    {
+      "feature_name": "Nonlinear Framing for Delayed Disclosure",
+      "direction": "Human",
+      "direction_text": "Human",
+      "unit": "scale_1_5",
+      "options": [
+        {
+          "option": "",
+          "human": 1.96,
+          "ai": 1.68,
+          "gap": 0.28
+        }
+      ]
+    }
+  ],
+  "source_extract": "validation/source_table16_v6.txt, a verbatim extract of the Table 16 text from the arXiv 2604.03136v6 HTML rendering."
+}
