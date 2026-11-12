@@ -37,7 +37,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           mkdir -p _export
-          git archive --format=tar HEAD | tar -x -C _export
+          git -c core.autocrlf=false archive --format=tar HEAD | tar -x -C _export
 
       - name: Validate 30 features, options, directions, and gaps
         working-directory: _export
