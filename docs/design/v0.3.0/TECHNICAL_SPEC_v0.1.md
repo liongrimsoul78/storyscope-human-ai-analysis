@@ -27,8 +27,9 @@ La salida primaria será un expediente JSON versionado, complementado por un inf
 6. Mantener el análisis narrativo descriptivo de las diez dimensiones separado de las 30 características centrales y de sus 33 comprobaciones de opción.
 7. Separar el estado de observación de la alineación investigativa. Esto corrige una ambigüedad del modelo conceptual heredado sin reescribir la Skill `v0.2.3`.
 8. La segunda pasada será una auditoría de calidad, no un juez independiente ni una prueba de verdad. La revisión humana sigue siendo el ancla de evaluación.
+9. El modelo A2 adopta `reference_pattern_id`, `historical_reference_pattern_id` (exclusivo del registro) y `reference_relation` (`aligned`, `opposed`, `not_assessed`) para conservar Presente–opuesto sin duplicar la referencia histórica en `EvidenceRecord`.
 9. No persistir el texto completo, no transmitirlo a servicios externos y no guardar su hash por defecto.
-10. No incorporar todavía bot, aplicación web, base vectorial, framework multiagente, proveedor LLM obligatorio ni integración con planos de control externos.
+11. No incorporar todavía bot, aplicación web, base vectorial, framework multiagente, proveedor LLM obligatorio ni integración con planos de control externos.
 
 ## 1. Estado de partida y límites del conocimiento
 
@@ -44,7 +45,7 @@ La release pública `v0.2.3` contiene una metodología cualitativa independiente
 - etiquetas direccionales cualitativas;
 - salvaguardas para textos breves, géneros no comparables, adaptación al español, ausencia como evidencia, privacidad y no atribución concluyente.
 
-La Skill no contiene la taxonomía oficial completa de 304 características, el corpus original, pesos, el clasificador XGBoost ni el pipeline de extracción oficial. Los resultados publicados por el clasificador del artículo no son métricas del motor LION LAB.
+La Skill no contiene la taxonomía oficial completa de 304 características, el corpus original, pesos, el clasificador XGBoost ni el pipeline de extracción oficial. Los resultados publicados por el clasificador del artículo no son métricas del motor de StoryScope.
 
 ### 1.2 Precisión relevante sobre las 30 características
 
@@ -291,7 +292,10 @@ Campos:
 - `record_id`: UUID estable dentro del bundle.
 - `feature_id`: ID del Feature Registry.
 - `dimension_id`: código de dimensión.
-- `reference_pattern_id`: nullable; patrón específico en el registro de 33.
+- `reference_pattern_id`: nullable; patrón específico en el registro de 33. Identifica exclusivamente el patrón con el que se alinea el registro.
+- `reference_relation`: enum `aligned`, `opposed`, `not_assessed`. Relación de la observación con la referencia histórica de la característica. Se sitúa junto a `research_alignment` porque ambos responden a preguntas distintas:
+  - `research_alignment` responde si la observación se alinea con un patrón IA o humano registrado;
+  - `reference_relation` responde si la observación está en el polo de referencia histórica, en el polo opuesto o sin relación direccional asignada.
 - `observed_option_id`: nullable; opción identificada por el registro.
 - `observation_status`:
   - `observed`: hay un valor/decisión afirmativamente observable;
@@ -329,6 +333,19 @@ Nota: `mixed_observations` no es un valor válido de `alignment_basis` en `Evide
 - `assessment_confidence`: `low`, `moderate`, `high`, `not_rated`; expresa confianza en la calidad de esta lectura, nunca probabilidad de autoría.
 - `review_status`: `unreviewed`, `accepted`, `revised`, `rejected`.
 
+#### Resolución de la referencia histórica (`historical_reference_pattern_id`)
+
+`historical_reference_pattern_id` es una propiedad del `FEATURE_REGISTRY`, no un campo duplicado de `EvidenceRecord`.
+
+Reglas:
+- El registro almacena un único `historical_reference_pattern_id` por `feature_record`.
+- `EvidenceRecord` resuelve la referencia mediante `feature_id` + `AnalysisRun.feature_registry_version`.
+- No se duplica `historical_reference_pattern_id` en `EvidenceRecord`.
+- La versión del registro debe quedar fijada en el bundle y ser reproducible.
+- La resolución requiere que el patrón exista en la versión fijada y pertenezca a la misma característica.
+- Si el bundle se exporta fuera de su contexto, el sobre de exportación debe conservar `feature_registry_version` (y, si el formato lo contempla, el digest del registro).
+- No se reinterpreta un análisis histórico con una versión posterior del registro sin revalidación explícita.
+
 #### Por qué se separan observation_status y research_alignment
 
 El esquema heredado usa cinco estados que combinan en sus etiquetas presencia y alineación (`Presente–alineado`, `Presente–opuesto`, `Ausente`, `No aplicable`, `No evaluable`). Sin embargo, el informe también necesita representar un hallazgo presente pero neutral en contexto. Dos ejes ortogonales lo expresan mejor:
@@ -345,7 +362,7 @@ La tabla siguiente documenta la relación con los estados de `v0.2.3` (`referenc
 | Estado histórico | `observation_status` | `research_alignment` | Traducción exacta |
 |---|---|---|---|
 | Presente–alineado | `observed` | `pattern_ai` o `pattern_human`, según la dirección elevada de la característica | Condicional: requiere `reference_pattern_id` o fundamento contextual auditado |
-| Presente–opuesto | `observed` | La dirección opuesta a la elevada, o `neutral` si no existe patrón de referencia aplicable | Condicional; no siempre exacta |
+| Presente–opuesto | `observed` | La dirección opuesta a la elevada cuando existe patrón registrado; `not_assessed` cuando no existe patrón opuesto registrado | Condicional; exige `reference_relation=opposed`, `source_spans` no vacío y justificación; nunca se representa como `neutral` ni como mera ausencia |
 | Ausente | `not_observed` con `opportunity_status=sufficient` | `not_assessed` | Exacta solo si la oportunidad es suficiente; en caso contrario corresponde a `not_evaluable` |
 | No aplicable | `not_applicable` | `not_assessed` | Exacta |
 | No evaluable | `not_evaluable` | `not_assessed` | Exacta |
@@ -439,7 +456,15 @@ Regla de resolución: no inferir la dirección a partir del nombre de la caracte
 
 Decisión: no se añade un campo `reference_direction` independiente; el patrón seleccionado desambigua la dirección. Si el patrón seleccionado no permite determinar la dirección (p. ej., observación sin patrón aplicable), `research_alignment=not_assessed`.
 
-Para el exportador de compatibilidad, la dirección de referencia histórica de estas características sigue la primera dirección listada en `research_direction_or_option_source` del registro; las combinaciones sin equivalencia exacta quedan pendientes.
+Para el exportador de compatibilidad, la dirección de referencia histórica de estas características se resuelve mediante `historical_reference_pattern_id` del registro versionado. En las tres bidireccionales actuales esa referencia es el patrón IA. Esta es una convención histórica de compatibilidad para comparar contra el corpus del estudio; no implica una jerarquía de calidad entre escritura humana e IA.
+
+Ejemplo de registro válido para una observación del polo humano:
+- `research_alignment=pattern_human`
+- `reference_pattern_id`=patrón humano
+- `reference_relation=opposed`
+- `historical_reference_pattern_id`=patrón IA (resuelto desde el registro)
+
+No hay contradicción: `reference_pattern_id` identifica el patrón con el que se alinea la observación; `historical_reference_pattern_id` identifica la referencia histórica de la característica. En una bidireccional ambos pueden ser patrones distintos.
 
 #### 5.3.6 Matriz de combinaciones válidas e inválidas
 
@@ -459,6 +484,56 @@ Combinaciones por caso (estructura válida, restricciones, interpretación permi
 12. Observación de anotación humana: `observation_origin=human_annotation` + `origin_detail` con protocolo y anotador seudonimizado.
 13. Observación de modelo externo: `observation_origin=external_model` + `origin_detail` con modelo, versión y estado de autorización; requiere autorización explícita.
 14. Conflicto entre dirección y patrón de referencia: si `reference_pattern_id` no coincide con la dirección reclamada, `research_alignment=not_assessed` + `alignment_basis=none` + flag `INVALID_STATE_ALIGNMENT_COMBINATION`.
+15. Consistencia con la referencia histórica:
+   - `aligned` exige `reference_pattern_id = historical_reference_pattern_id` resuelto y `research_alignment = dir(historical_reference_pattern_id)`.
+   - `opposed` exige evidencia afirmativa y, en características bidireccionales, `reference_pattern_id` = patrón opuesto registrado.
+   - `not_assessed` no asigna una relación direccional y es compatible con `neutral`, con ausencia, con no aplicabilidad, con no evaluabilidad y con observaciones sin patrón aplicable.
+   - El referente histórico se resuelve desde `FEATURE_REGISTRY` mediante `feature_id + AnalysisRun.feature_registry_version`; no se duplica en `EvidenceRecord`.
+16. Relación entre registros: `counterevidence_record_ids` enlaza hallazgos que contradicen o matizan otro; no sustituye a `reference_relation`, que expresa la relación de una observación con la referencia histórica de su característica.
+
+#### 5.3.7 Alternativas para conservar Presente–opuesto (pendiente de decisión del propietario)
+
+`references/evidence-status.md` define Presente–opuesto como un valor directamente observado que representa el polo alternativo de una característica direccional: es contraevidencia real, no ausencia. El esquema v0.3.0 de dos ejes no conserva por sí solo esa distinción, porque `research_alignment` codifica el grupo del patrón (IA o humano), no la relación con una dirección de referencia. Se presentan tres alternativas; ninguna se adopta en esta fase.
+
+**Alternativa A — Campo tipado separado `reference_relation`.**
+- Añadir a `EvidenceRecord` un campo `reference_relation` con valores `aligned`, `opposed`, `not_assessed`.
+- Compatibilidad con 30 features y 33 patrones: total, no altera el registro.
+- Conservación del significado histórico: alta; `opposed` codifica contraevidencia explícitamente.
+- Efecto sobre la matriz de estados: añade un tercer eje para la exportación histórica; la matriz actual de dos ejes se mantiene para el análisis descriptivo.
+- Efecto sobre el exportador: puede producir Presente–opuesto cuando `reference_relation=opposed` y `observation_status=observed`.
+- Facilidad de validación: alta (enum + consistencia con `reference_pattern_id`).
+- Riesgo: un implementador puede confundir `reference_relation` con `research_alignment`; requiere documentación estricta.
+
+**Alternativa B — Representación explícita de contraevidencia.**
+- Añadir un campo o registro de contraevidencia con referencia a la característica y al patrón/polo de comparación (p. ej., `counterevidence=true` con `comparison_pole`).
+- Compatibilidad: total.
+- Conservación del significado: alta; la contraevidencia queda tipada.
+- Efecto sobre la matriz: Presente–opuesto se modela como observación presente con marca de contraevidencia, no como estado separado.
+- Efecto sobre el exportador: más claro que A, pero requiere reglas adicionales.
+- Facilidad de validación: media (más campos, más invariantes).
+- Riesgo: proliferación de esquema y duplicación con `counterevidence_record_ids`.
+
+**Alternativa C — Derivar la relación del patrón seleccionado y del registro.**
+- No añadir campos. La relación se deriva comparando el grupo del `reference_pattern_id` seleccionado con la dirección elevada de la característica en `research_direction_or_option_source` del registro.
+- Compatibilidad: total.
+- Conservación del significado: media-alta para features unidireccionales (27 de 30); para las tres bidireccionales (`Dominant Emotional Expression`, `Subplot Integration`, `Reference Explicitness`) la dirección elevada es ambigua y exige declarar una dirección de referencia.
+- Efecto sobre la matriz: no añade ejes; la exportación es determinista dado el registro y la dirección de referencia declarada.
+- Efecto sobre el exportador: determinista, pero depende de fijar la versión del registro.
+- Facilidad de validación: media (requiere pinning de la revisión del registro y resolución de bidireccionales).
+- Riesgo: lógica implícita, más difícil de auditar; la ambigüedad bidireccional persiste.
+
+**Estado:** decisión adoptada en la consolidación documental v0.3.0: se selecciona la Alternativa A refinada como modelo A2.
+
+Modelo A2 adoptado:
+- `reference_pattern_id`: patrón de alineación del `EvidenceRecord`.
+- `historical_reference_pattern_id`: referencia histórica almacenada exclusivamente en `FEATURE_REGISTRY`.
+- `reference_relation`: `aligned`, `opposed`, `not_assessed`.
+
+No se adoptan B ni C como solución principal:
+- B añadiría una estructura paralela de contraevidencia y duplicaría responsabilidades con `counterevidence_record_ids`.
+- C dejaría la relación implícita y no resolvería de forma auditable las características bidireccionales.
+
+La Alternativa A se refina con la separación de identificadores: `reference_pattern_id` y `historical_reference_pattern_id` tienen funciones distintas y no se fusionan. El exportador de compatibilidad sigue pendiente para los casos sin equivalencia exacta.
 
 #### Reglas lógicas mínimas
 
@@ -518,6 +593,14 @@ Los ocho clústeres operativos serán identificadores estables. Cada resumen con
 
 No usar recuento de registros ni mayoría de features para asignar alineación al clúster. La síntesis es cualitativa y debe explicar si varias features reflejan una sola decisión narrativa.
 
+### 5.7 Fuente de verdad, versionado y resolución
+
+- `FEATURE_REGISTRY` es la fuente única de `historical_reference_pattern_id`.
+- `AnalysisRun.feature_registry_version` fija la versión del registro usada por el bundle.
+- `schema_version` identifica el esquema del bundle; en el registro, la adición de `historical_reference_pattern_id` se refleja como `schema_version` 1.1.0 frente a 1.0.0 de la versión 0.1.1-draft.
+- El digest SHA-256 del registro puede incluirse en el paquete exportado cuando el formato ya lo contemple.
+- No se reinterpreta un análisis histórico con una versión posterior del registro sin revalidación explícita.
+
 ## 6. Auditoría en dos capas
 
 ### 6.1 Capa A — determinista
@@ -562,6 +645,38 @@ Por ello:
 - la auditoría semántica propone objeciones;
 - la evaluación de calidad se ancla en anotaciones humanas documentadas y adjudicadas;
 - ningún resultado de la segunda pasada se presenta como veredicto independiente.
+
+### 6.4 Invariantes del modelo A2
+
+Los invariantes `INV-A2-01` a `INV-A2-17` se definen en la Fase 1.10-T y se adoptan aquí. En esta especificación se resumen sus reglas operativas:
+
+1. `INV-A2-01`: `historical_reference_pattern_id` se almacena solo en `FEATURE_REGISTRY`; `EvidenceRecord` lo resuelve mediante `feature_id + AnalysisRun.feature_registry_version`.
+2. `INV-A2-02`: en las 30 características actuales, `historical_reference_pattern_id` es obligatorio, escalar y no nulo.
+3. `INV-A2-03`: `historical_reference_pattern_id` debe pertenecer a la misma característica.
+4. `INV-A2-04`: la selección es AI-first: patrón IA si existe; en caso contrario, patrón humano.
+5. `INV-A2-05`: los valores de `historical_reference_pattern_id` son únicos entre características.
+6. `INV-A2-06`: `reference_pattern_id`, si no es nulo, debe pertenecer a la misma característica.
+7. `INV-A2-07`: `pattern_direction(reference_pattern_id) = research_alignment`.
+8. `INV-A2-08`: `research_alignment ∈ {pattern_ai, pattern_human}` ⇔ `reference_pattern_id` no nulo.
+9. `INV-A2-09`: `aligned` exige `reference_pattern_id = historical_reference_pattern_id` resuelto y `research_alignment = dir(historical_reference_pattern_id)`.
+10. `INV-A2-10`: en bidireccionales, `opposed` exige `reference_pattern_id` = patrón opuesto registrado, `research_alignment = dir(reference_pattern_id)` y `reference_pattern_id ≠ historical_reference_pattern_id`.
+11. `INV-A2-11`: en unidireccionales, `opposed` exige `reference_pattern_id=null`, `research_alignment=not_assessed`, `observation_status=observed`, evidencia y justificación.
+12. `INV-A2-12`: `neutral` exige `observed`, `reference_pattern_id=null`, `reference_relation=not_assessed`, `alignment_basis=contextual_neutralization` y `alignment_basis_detail` no nulo.
+13. `INV-A2-13`: ausencia, no aplicabilidad y no evaluabilidad exigen `research_alignment=not_assessed`, `reference_pattern_id=null` y `reference_relation=not_assessed`, con sus requisitos de oportunidad y motivo.
+14. `INV-A2-14`: `reference_relation ∈ {aligned, opposed}` exige `observation_status=observed`.
+15. `INV-A2-15`: `opposed` exige evidencia afirmativa y justificación tipo-específica; en escalas y ordinales no se inventan puntos de corte; en multi-select la coexistencia o ausencia de la opción de referencia no bastan; en categóricas/binarias una opción distinta no basta salvo complemento documentado.
+16. `INV-A2-16`: la resolución exige `AnalysisRun.feature_registry_version` fijada e inmutable; no se reinterpreta un análisis con una versión posterior sin revalidación explícita.
+17. `INV-A2-17`: las futuras características sin patrón histórico usan `historical_reference_pattern_id=null` y solo admiten `research_alignment=not_assessed`, `reference_pattern_id=null`, `reference_relation=not_assessed`.
+
+La validación estructural automatizable puede comprobar identificadores, enums, pertenencia, dirección, cardinalidad, spans y justificación no nula. La validación semántica requiere auditoría para decidir si un valor constituye realmente un polo opuesto, si una cita sostiene una interpretación o si una opción diferente es un complemento documentado.
+
+### 6.5 Validación estructural vs. semántica para `opposed`
+
+- **Bidireccionales:** estructuralmente verificable por IDs y direcciones; semánticamente requiere confirmar que el texto sostiene el patrón alternativo.
+- **Categóricas unidireccionales:** una opción diferente no basta; requiere complemento opuesto documentado por el instrumento o la metodología.
+- **Binarias:** un `no` explícito puede ser `opposed` cuando es una opción canónica observada; la mera ausencia no basta.
+- **Multi-select:** la presencia de la opción de referencia implica alineación con esa referencia; su coexistencia con otras opciones no produce automáticamente `opposed`; la ausencia de la opción de referencia no demuestra contraevidencia.
+- **Escalas y ordinales:** no se crean umbrales numéricos; `opposed` requiere un ancla o constructo opuesto identificable y justificación cualitativa. Un valor intermedio o una media no se vuelve opuesto automáticamente.
 
 ### 6.4 Formato de AuditFinding
 

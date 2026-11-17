@@ -51,7 +51,7 @@ StoryScope no se fusiona con planos de control externos ni introduce una depende
 - La adaptación al español es exploratoria y no cuenta todavía con una validación equivalente a la del corpus original en inglés.
 - El motor v0.3.0 refina estos cinco estados en dos ejes ortogonales (`observation_status` y `research_alignment`) sin modificar el baseline `v0.2.3`. La correspondencia se documenta en la especificación técnica.
 - Los archivos canónicos heredados de `v0.2.3` conservan su nomenclatura histórica; se reconocen como procedencia documental, no como dependencia ni identidad del proyecto.
-- El contrato de evidencia (`observation_status`, `research_alignment`, `opportunity_status`, `observation_origin`, `status_reason`) y la matriz de combinaciones v?lidas se definen en la especificaci?n t?cnica (?5.3).
+- El contrato de evidencia (`observation_status`, `research_alignment`, `opportunity_status`, `observation_origin`, `status_reason`) y la matriz de combinaciones válidas se definen en la especificación técnica (§ 5.3).
 - En v0.3.0, `mixed` no es un valor de `EvidenceRecord.research_alignment`; la mezcla se expresa solo en `ClusterSummary` y `AnalysisRun`.
 
 ### 2.3 Estado del motor

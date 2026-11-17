@@ -72,17 +72,24 @@ Esto no significa que Social networks o Style estén ausentes del marco científ
 
 ## Decisiones de Fase 1.4 (contrato de evidencia)
 
-- `neutral` y `not_assessed` se definen de forma disjunta: `neutral` es neutralidad evaluada; `not_assessed` es ausencia de valoraci?n.
+- `neutral` y `not_assessed` se definen de forma disjunta: `neutral` es neutralidad evaluada; `not_assessed` es ausencia de valoración.
 - `opportunity_status` se define operativamente (`sufficient`, `limited`, `none`, `unknown`) y condiciona `not_observed`.
-- `observation_origin` registra la procedencia de cada observaci?n (anotaci?n humana, modelo externo, herramienta independiente, experimento autorizado).
-- `alignment_basis` se define con sus cuatro valores; `alignment_basis_detail` conserva la justificaci?n contextual auditada.
-- Las caracter?sticas bidireccionales (`Dominant Emotional Expression`, `Subplot Integration`, `Reference Explicitness`) se resuelven mediante `reference_pattern_id` y el registro, sin campo adicional.
-- `mixed` se restringe a `ClusterSummary` o a registros vinculados; no a registros at?micos aislados.
-- Los valores categ?ricos expl?citos de ausencia se registran como `observed` con su opci?n can?nica, no como `not_observed`.
-- La matriz de 14 combinaciones v?lidas/inv?lidas se documenta en la especificaci?n (?5.3.6).
-- El exportador de compatibilidad hacia los cinco estados hist?ricos sigue pendiente; no se fuerza conversi?n sin equivalencia.
+- `observation_origin` registra la procedencia de cada observación (anotación humana, modelo externo, herramienta independiente, experimento autorizado).
+- `alignment_basis` se define con sus cuatro valores; `alignment_basis_detail` conserva la justificación contextual auditada.
+- Las características bidireccionales (`Dominant Emotional Expression`, `Subplot Integration`, `Reference Explicitness`) se resuelven mediante `reference_pattern_id` y el registro, sin campo adicional.
+- `mixed` se restringe a `ClusterSummary` o a registros vinculados; no a registros atómicos aislados.
+- Los valores categóricos explícitos de ausencia se registran como `observed` con su opción canónica, no como `not_observed`.
+- La matriz de 14 combinaciones válidas/inválidas se documenta en la especificación (§ 5.3.6).
+- El exportador de compatibilidad hacia los cinco estados históricos sigue pendiente; no se fuerza conversión sin equivalencia.
 
 - `mixed` se elimina del enum de `EvidenceRecord.research_alignment` (Fase 1.5.2, Alternativa A); solo `ClusterSummary` y `AnalysisRun`.
+
+## Fase 1.8 - Remediacion documental
+
+- UTF-8 restaurado en este archivo (F-01).
+- `mixed` uniformado: no es valor de `EvidenceRecord.research_alignment`; solo `ClusterSummary` y `AnalysisRun` (F-03).
+- F-02 (Presente-opuesto) se analiza en la especificacion tecnica seccion 5.3.7 con tres alternativas; el contrato queda pendiente de decision del propietario.
+- F-04: la alineacion se define como propiedad individual del registro; la mezcla es propiedad de conjuntos.
 
 ## Pendientes antes de congelar el registro
 
@@ -97,3 +104,21 @@ Las comprobaciones estructurales de esta revisión se realizaron ad hoc. Su auto
 Los archivos canónicos heredados de `v0.2.3` conservan nomenclatura histórica; se reconocen como procedencia documental, no como dependencia ni identidad del proyecto.
 
 **No es una implementación del motor.** El registro continúa en estado `draft_for_review` y no autoriza clasificación, scoring ni inferencia automática de autoría.
+
+## Consolidación A2 — Fase 1.11
+
+- Se selecciona el modelo A2: `reference_pattern_id`, `historical_reference_pattern_id` y `reference_relation`.
+- `reference_pattern_id` identifica exclusivamente el patrón de alineación del `EvidenceRecord`.
+- `historical_reference_pattern_id` se almacena exclusivamente en `FEATURE_REGISTRY`, a nivel de `feature_record`.
+- `EvidenceRecord` no duplica `historical_reference_pattern_id`; lo resuelve mediante `feature_id` + `AnalysisRun.feature_registry_version`.
+- La referencia histórica de las 30 características actuales sigue la regla AI-first: patrón IA si existe; en caso contrario, patrón humano.
+- En las tres características bidireccionales la referencia histórica es el patrón IA. Esta es una convención histórica de compatibilidad, no una jerarquía de calidad entre escritura humana e IA.
+- Se crea `FEATURE_REGISTRY_v0.1.2-draft.json` a partir de `FEATURE_REGISTRY_v0.1.1_draft.json`; la versión anterior permanece intacta.
+- Versión del registro: `0.1.2-draft`; esquema del registro: `1.1.0`.
+- El registro sigue en estado `draft_for_review`.
+- `reference_relation` admite únicamente `aligned`, `opposed` y `not_assessed`.
+- `Presente–opuesto` se representa mediante `reference_relation=opposed`; nunca como `neutral` ni como mera ausencia.
+- `not_assessed` en `reference_relation` significa que no se asigna una relación direccional; no borra el hecho de que la observación haya sido evaluada.
+- Los invariantes `INV-A2-01` a `INV-A2-17` se incorporan a la especificación técnica.
+- Validación estructural automatizable y auditoría semántica se distinguen expresamente; la validación estructural no demuestra por sí sola juicios cualitativos.
+- Asuntos pendientes que no bloquean la consolidación documental: exportador de compatibilidad para casos sin equivalencia exacta, validador reproducible del registro, automatización en CI, adaptación al español exploratoria, nomenclatura histórica de `v0.2.3` como procedencia.

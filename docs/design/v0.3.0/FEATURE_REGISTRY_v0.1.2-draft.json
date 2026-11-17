@@ -1,0 +1,972 @@
+{
+  "registry_name": "StoryScope Feature Registry",
+  "registry_version": "0.1.2-draft",
+  "schema_version": "1.1.0",
+  "status": "draft_for_review",
+  "created_date": "2026-11-12",
+  "source_baseline": {
+    "skill_version": "0.2.3",
+    "feature_map": "references/feature-dimension-map.csv",
+    "table16_source": "validation/table16_expected.json",
+    "cluster_map": "references/cluster-map.md"
+  },
+  "id_policy": {
+    "feature_id_prefix": "ssha.feature.",
+    "pattern_id_prefix": "ssha.pattern.",
+    "slug_rule": "lowercase_ascii_snake_case_from_canonical_feature_name_or_pattern_label",
+    "immutability": "IDs become immutable when registry v1.0.0 is accepted; labels may be translated without changing IDs.",
+    "note": "These are StoryScope internal identifiers, not official feature IDs of the original research. Official taxonomy IDs are not inferred or guessed; any future crosswalk must pin and validate the exact source revision."
+  },
+  "dimensions": [
+    {
+      "dimension_id": "agents",
+      "display_name": "Agents",
+      "paper_dimension_code_in_core_map": "AGENT",
+      "core_feature_count": 2
+    },
+    {
+      "dimension_id": "social_networks",
+      "display_name": "Social networks",
+      "paper_dimension_code_in_core_map": null,
+      "core_feature_count": 0
+    },
+    {
+      "dimension_id": "style",
+      "display_name": "Style",
+      "paper_dimension_code_in_core_map": null,
+      "core_feature_count": 0
+    },
+    {
+      "dimension_id": "plot",
+      "display_name": "Plot",
+      "paper_dimension_code_in_core_map": "PLT",
+      "core_feature_count": 4
+    },
+    {
+      "dimension_id": "setting",
+      "display_name": "Setting",
+      "paper_dimension_code_in_core_map": "SET",
+      "core_feature_count": 7
+    },
+    {
+      "dimension_id": "events",
+      "display_name": "Events",
+      "paper_dimension_code_in_core_map": "EVT",
+      "core_feature_count": 2
+    },
+    {
+      "dimension_id": "revelation",
+      "display_name": "Revelation",
+      "paper_dimension_code_in_core_map": "REV",
+      "core_feature_count": 3
+    },
+    {
+      "dimension_id": "situatedness",
+      "display_name": "Situatedness",
+      "paper_dimension_code_in_core_map": "SIT",
+      "core_feature_count": 6
+    },
+    {
+      "dimension_id": "temporal_structure",
+      "display_name": "Temporal structure",
+      "paper_dimension_code_in_core_map": "TMP",
+      "core_feature_count": 2
+    },
+    {
+      "dimension_id": "perspective",
+      "display_name": "Perspective",
+      "paper_dimension_code_in_core_map": "PER",
+      "core_feature_count": 4
+    }
+  ],
+  "cluster_catalog": [
+    {
+      "cluster_id": "thematic_framing",
+      "display_name": "Thematic framing",
+      "display_name_es": "Marco temático",
+      "origin": "StoryScope operational grouping; not an official cluster of the original research"
+    },
+    {
+      "cluster_id": "emotional_sensory_expression",
+      "display_name": "Emotional/sensory expression",
+      "display_name_es": "Expresión emocional y sensorial",
+      "origin": "StoryScope operational grouping; not an official cluster of the original research"
+    },
+    {
+      "cluster_id": "character_presentation",
+      "display_name": "Character presentation",
+      "display_name_es": "Presentación e interioridad del personaje",
+      "origin": "StoryScope operational grouping; not an official cluster of the original research"
+    },
+    {
+      "cluster_id": "causal_plot_architecture",
+      "display_name": "Causal/plot architecture",
+      "display_name_es": "Causalidad y resolución",
+      "origin": "StoryScope operational grouping; not an official cluster of the original research"
+    },
+    {
+      "cluster_id": "space_and_setting",
+      "display_name": "Space and setting",
+      "display_name_es": "Espacio y entorno",
+      "origin": "StoryScope operational grouping; not an official cluster of the original research"
+    },
+    {
+      "cluster_id": "intertextuality",
+      "display_name": "Intertextuality",
+      "display_name_es": "Intertextualidad",
+      "origin": "StoryScope operational grouping; not an official cluster of the original research"
+    },
+    {
+      "cluster_id": "reader_engagement",
+      "display_name": "Reader engagement",
+      "display_name_es": "Participación del lector y diálogo",
+      "origin": "StoryScope operational grouping; not an official cluster of the original research"
+    },
+    {
+      "cluster_id": "temporal_revelatory_structure",
+      "display_name": "Temporal/revelatory structure",
+      "display_name_es": "Temporalidad y revelación",
+      "origin": "StoryScope operational grouping; not an official cluster of the original research"
+    }
+  ],
+  "counts": {
+    "core_features": 30,
+    "reference_patterns": 33,
+    "dimensions": 10,
+    "operational_clusters": 8
+  },
+  "feature_records": [
+    {
+      "feature_id": "ssha.feature.thematic_explicitness_and_moralizing",
+      "canonical_name": "Thematic Explicitness and Moralizing",
+      "dimension_id": "situatedness",
+      "paper_dimension_code": "SIT",
+      "paper_dimension_name": "situatedness",
+      "cluster_id": "thematic_framing",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.thematic_explicitness_and_moralizing.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.thematic_explicitness_and_moralizing.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "AI stories state themes/morals more explicitly on average; group mean, not threshold.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.dominant_emotional_expression",
+      "canonical_name": "Dominant Emotional Expression",
+      "dimension_id": "agents",
+      "paper_dimension_code": "AGENT",
+      "paper_dimension_name": "agents",
+      "cluster_id": "emotional_sensory_expression",
+      "measurement_type_source": "categorical",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.dominant_emotional_expression.embodied",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "embodied",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        },
+        {
+          "pattern_id": "ssha.pattern.dominant_emotional_expression.explicit_labels",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "explicit labels",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.dominant_emotional_expression.embodied",
+      "research_direction_or_option_source": "AI: embodied; Human: explicit labels",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Two response values of one feature; never count as two independent features.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.thematic_unity",
+      "canonical_name": "Thematic Unity",
+      "dimension_id": "plot",
+      "paper_dimension_code": "PLT",
+      "paper_dimension_name": "plot",
+      "cluster_id": "thematic_framing",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.thematic_unity.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.thematic_unity.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Theme integration is related to thematic explicitness; group only once per cluster.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.dominant_sensory_modalities",
+      "canonical_name": "Dominant Sensory Modalities",
+      "dimension_id": "setting",
+      "paper_dimension_code": "SET",
+      "paper_dimension_name": "setting",
+      "cluster_id": "emotional_sensory_expression",
+      "measurement_type_source": "multi-select option",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.dominant_sensory_modalities.olfactory",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "olfactory",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.dominant_sensory_modalities.olfactory",
+      "research_direction_or_option_source": "AI: olfactory",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Only count if sensory modality is actually assessable in a sufficiently developed story.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.character_introduction",
+      "canonical_name": "Character Introduction",
+      "dimension_id": "agents",
+      "paper_dimension_code": "AGENT",
+      "paper_dimension_name": "agents",
+      "cluster_id": "character_presentation",
+      "measurement_type_source": "categorical option",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.character_introduction.external_description",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "external description",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.character_introduction.external_description",
+      "research_direction_or_option_source": "AI: external description",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Do not infer from a fragment that starts after character introduction.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.setting_as_psychological_mirror",
+      "canonical_name": "Setting as Psychological Mirror",
+      "dimension_id": "setting",
+      "paper_dimension_code": "SET",
+      "paper_dimension_name": "setting",
+      "cluster_id": "emotional_sensory_expression",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.setting_as_psychological_mirror.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.setting_as_psychological_mirror.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Requires enough setting and character interiority; otherwise not assessable.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.continuity_of_main_causal_chain",
+      "canonical_name": "Continuity of Main Causal Chain",
+      "dimension_id": "events",
+      "paper_dimension_code": "EVT",
+      "paper_dimension_name": "events",
+      "cluster_id": "causal_plot_architecture",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.continuity_of_main_causal_chain.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.continuity_of_main_causal_chain.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "A tidy causal chain is not automatically better or worse; interpret in genre.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.sensory_density",
+      "canonical_name": "Sensory Density",
+      "dimension_id": "setting",
+      "paper_dimension_code": "SET",
+      "paper_dimension_name": "setting",
+      "cluster_id": "emotional_sensory_expression",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.sensory_density.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.sensory_density.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Small mean difference; simple absence in short text has no direction.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.agency_in_resolution",
+      "canonical_name": "Agency in Resolution",
+      "dimension_id": "plot",
+      "paper_dimension_code": "PLT",
+      "paper_dimension_name": "plot",
+      "cluster_id": "causal_plot_architecture",
+      "measurement_type_source": "categorical option",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.agency_in_resolution.protagonist_choice",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "protagonist choice",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.agency_in_resolution.protagonist_choice",
+      "research_direction_or_option_source": "AI: protagonist choice",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Only assess when a narrative resolution is actually present.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.narratorial_thematic_commentary",
+      "canonical_name": "Narratorial Thematic Commentary",
+      "dimension_id": "situatedness",
+      "paper_dimension_code": "SIT",
+      "paper_dimension_name": "situatedness",
+      "cluster_id": "thematic_framing",
+      "measurement_type_source": "binary option",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.narratorial_thematic_commentary.yes",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "yes",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.narratorial_thematic_commentary.yes",
+      "research_direction_or_option_source": "AI: yes",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Keep distinct from character speech; related to but not independent of thematic explicitness.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.opening_spatial_grounding",
+      "canonical_name": "Opening Spatial Grounding",
+      "dimension_id": "setting",
+      "paper_dimension_code": "SET",
+      "paper_dimension_name": "setting",
+      "cluster_id": "space_and_setting",
+      "measurement_type_source": "ordinal mean",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.opening_spatial_grounding.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.opening_spatial_grounding.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Only assess a true narrative opening, not an excerpt beginning mid-scene.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.dialogue_function",
+      "canonical_name": "Dialogue Function",
+      "dimension_id": "perspective",
+      "paper_dimension_code": "PER",
+      "paper_dimension_name": "perspective",
+      "cluster_id": "thematic_framing",
+      "measurement_type_source": "multi-select option",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.dialogue_function.philosophical_debate",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "philosophical debate",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.dialogue_function.philosophical_debate",
+      "research_direction_or_option_source": "AI: philosophical debate",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Assess the function of existing dialogue; no dialogue in a microtext is not a directional cue.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.spatial_granularity_level",
+      "canonical_name": "Spatial Granularity Level",
+      "dimension_id": "setting",
+      "paper_dimension_code": "SET",
+      "paper_dimension_name": "setting",
+      "cluster_id": "space_and_setting",
+      "measurement_type_source": "ordinal mean",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.spatial_granularity_level.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.spatial_granularity_level.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Small mean difference; require text with meaningful spatial description.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.subplot_integration",
+      "canonical_name": "Subplot Integration",
+      "dimension_id": "plot",
+      "paper_dimension_code": "PLT",
+      "paper_dimension_name": "plot",
+      "cluster_id": "causal_plot_architecture",
+      "measurement_type_source": "categorical",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.subplot_integration.no_subplots",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "no subplots",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        },
+        {
+          "pattern_id": "ssha.pattern.subplot_integration.thematically_parallel",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "thematically parallel",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.subplot_integration.no_subplots",
+      "research_direction_or_option_source": "AI: no subplots; Human: thematically parallel",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "One categorical feature with alternative values. ‘No subplots’ is not assessable in a short fragment.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.moral_philosophical_weighting",
+      "canonical_name": "Moral / Philosophical Weighting",
+      "dimension_id": "situatedness",
+      "paper_dimension_code": "SIT",
+      "paper_dimension_name": "situatedness",
+      "cluster_id": "thematic_framing",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.moral_philosophical_weighting.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.moral_philosophical_weighting.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Overlaps with thematic framing; group at cluster level.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.reference_explicitness",
+      "canonical_name": "Reference Explicitness",
+      "dimension_id": "situatedness",
+      "paper_dimension_code": "SIT",
+      "paper_dimension_name": "situatedness",
+      "cluster_id": "intertextuality",
+      "measurement_type_source": "categorical",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.reference_explicitness.implicit_echoes",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "implicit echoes",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        },
+        {
+          "pattern_id": "ssha.pattern.reference_explicitness.balanced_mix",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "balanced mix",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.reference_explicitness.implicit_echoes",
+      "research_direction_or_option_source": "AI: implicit echoes; Human: balanced mix",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "One categorical feature; its two option values are not separate features.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.environmental_and_ecological_emphasis",
+      "canonical_name": "Environmental and Ecological Emphasis",
+      "dimension_id": "setting",
+      "paper_dimension_code": "SET",
+      "paper_dimension_name": "setting",
+      "cluster_id": "emotional_sensory_expression",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.environmental_and_ecological_emphasis.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.environmental_and_ecological_emphasis.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "May be genre-dependent; do not expect ecology in every story.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.mode_of_resolution",
+      "canonical_name": "Mode of Resolution",
+      "dimension_id": "events",
+      "paper_dimension_code": "EVT",
+      "paper_dimension_name": "events",
+      "cluster_id": "causal_plot_architecture",
+      "measurement_type_source": "categorical option",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.mode_of_resolution.internal_understanding",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "internal understanding",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.mode_of_resolution.internal_understanding",
+      "research_direction_or_option_source": "AI: internal understanding",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Only assess if the main event chain has a resolution.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.pre_threat_character_investment",
+      "canonical_name": "Pre-Threat Character Investment",
+      "dimension_id": "revelation",
+      "paper_dimension_code": "REV",
+      "paper_dimension_name": "revelation",
+      "cluster_id": "character_presentation",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.pre_threat_character_investment.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.pre_threat_character_investment.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Requires a story with a recognizable threat/jeopardy structure.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.depth_of_interior_access",
+      "canonical_name": "Depth of Interior Access",
+      "dimension_id": "perspective",
+      "paper_dimension_code": "PER",
+      "paper_dimension_name": "perspective",
+      "cluster_id": "character_presentation",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.depth_of_interior_access.overall",
+          "pattern_direction": "pattern_ai",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 14",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.depth_of_interior_access.overall",
+      "research_direction_or_option_source": "AI",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Access to inner life is not the same as explicit emotion labeling.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.intertextual_strategy_types",
+      "canonical_name": "Intertextual Strategy Types",
+      "dimension_id": "situatedness",
+      "paper_dimension_code": "SIT",
+      "paper_dimension_name": "situatedness",
+      "cluster_id": "intertextuality",
+      "measurement_type_source": "multi-select option",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.intertextual_strategy_types.explicit_named_reference",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "explicit named reference",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.intertextual_strategy_types.explicit_named_reference",
+      "research_direction_or_option_source": "Human: explicit named reference",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "A named reference must be identifiable, not guessed from a generic trope.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.frequency_of_direct_reader_address",
+      "canonical_name": "Frequency of Direct Reader Address",
+      "dimension_id": "perspective",
+      "paper_dimension_code": "PER",
+      "paper_dimension_name": "perspective",
+      "cluster_id": "reader_engagement",
+      "measurement_type_source": "ordinal mean",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.frequency_of_direct_reader_address.overall",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.frequency_of_direct_reader_address.overall",
+      "research_direction_or_option_source": "Human",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Direct address is different from generic second-person phrasing.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.depth_of_recontextualization_after_surprise",
+      "canonical_name": "Depth of Recontextualization After Surprise",
+      "dimension_id": "revelation",
+      "paper_dimension_code": "REV",
+      "paper_dimension_name": "revelation",
+      "cluster_id": "temporal_revelatory_structure",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.depth_of_recontextualization_after_surprise.overall",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.depth_of_recontextualization_after_surprise.overall",
+      "research_direction_or_option_source": "Human",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Requires a genuine revelation that changes interpretation of earlier events.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.dialogue_to_narration_proportion",
+      "canonical_name": "Dialogue-to-Narration Proportion",
+      "dimension_id": "perspective",
+      "paper_dimension_code": "PER",
+      "paper_dimension_name": "perspective",
+      "cluster_id": "reader_engagement",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.dialogue_to_narration_proportion.overall",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.dialogue_to_narration_proportion.overall",
+      "research_direction_or_option_source": "Human",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Only meaningful when dialogue and narration both have enough opportunity to occur.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.fourth_wall_permeability",
+      "canonical_name": "Fourth-Wall Permeability",
+      "dimension_id": "situatedness",
+      "paper_dimension_code": "SIT",
+      "paper_dimension_name": "situatedness",
+      "cluster_id": "reader_engagement",
+      "measurement_type_source": "ordinal mean",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.fourth_wall_permeability.overall",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.fourth_wall_permeability.overall",
+      "research_direction_or_option_source": "Human",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Do not confuse dialogue to an in-world listener with direct reader address.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.degree_of_chronological_discontinuity",
+      "canonical_name": "Degree of Chronological Discontinuity",
+      "dimension_id": "temporal_structure",
+      "paper_dimension_code": "TMP",
+      "paper_dimension_name": "temporal_structure",
+      "cluster_id": "temporal_revelatory_structure",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.degree_of_chronological_discontinuity.overall",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.degree_of_chronological_discontinuity.overall",
+      "research_direction_or_option_source": "Human",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Small average difference. Linear chronology alone is not decisive; absence of flashbacks in short text is not evidence.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.location_variety_scope",
+      "canonical_name": "Location Variety Scope",
+      "dimension_id": "setting",
+      "paper_dimension_code": "SET",
+      "paper_dimension_name": "setting",
+      "cluster_id": "space_and_setting",
+      "measurement_type_source": "ordinal mean",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.location_variety_scope.overall",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.location_variety_scope.overall",
+      "research_direction_or_option_source": "Human",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Requires a complete story with opportunity to move across locations.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.anachrony_intensity",
+      "canonical_name": "Anachrony Intensity",
+      "dimension_id": "temporal_structure",
+      "paper_dimension_code": "TMP",
+      "paper_dimension_name": "temporal_structure",
+      "cluster_id": "temporal_revelatory_structure",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.anachrony_intensity.overall",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.anachrony_intensity.overall",
+      "research_direction_or_option_source": "Human",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Explicit flashbacks/flash-forwards; small average difference, not a requirement for quality.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.moral_polarity_toward_protagonist",
+      "canonical_name": "Moral Polarity Toward Protagonist",
+      "dimension_id": "plot",
+      "paper_dimension_code": "PLT",
+      "paper_dimension_name": "plot",
+      "cluster_id": "causal_plot_architecture",
+      "measurement_type_source": "categorical option",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.moral_polarity_toward_protagonist.ambivalent_mixed",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "ambivalent/mixed",
+          "pattern_level": "response_option",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.moral_polarity_toward_protagonist.ambivalent_mixed",
+      "research_direction_or_option_source": "Human: ambivalent/mixed",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Moral ambiguity may be intentional, but is not inherently better or proof of human authorship.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    },
+    {
+      "feature_id": "ssha.feature.nonlinear_framing_for_delayed_disclosure",
+      "canonical_name": "Nonlinear Framing for Delayed Disclosure",
+      "dimension_id": "revelation",
+      "paper_dimension_code": "REV",
+      "paper_dimension_name": "revelation",
+      "cluster_id": "temporal_revelatory_structure",
+      "measurement_type_source": "scale 1–5",
+      "reference_patterns": [
+        {
+          "pattern_id": "ssha.pattern.nonlinear_framing_for_delayed_disclosure.overall",
+          "pattern_direction": "pattern_human",
+          "pattern_label": "overall",
+          "pattern_level": "overall_feature",
+          "source_tables": [
+            "Table 15",
+            "Table 16"
+          ]
+        }
+      ],
+      "historical_reference_pattern_id": "ssha.pattern.nonlinear_framing_for_delayed_disclosure.overall",
+      "research_direction_or_option_source": "Human",
+      "table16_values_reference": "validation/table16_expected.json",
+      "interpretive_caution": "Requires delayed disclosure and structural time-jumps; a simple linear sequence is not an authorship verdict.",
+      "source_baseline": "StoryScope Human-AI Analysis v0.2.3"
+    }
+  ],
+  "integrity_notes": [
+    "The 30 core features do not implement the complete 304-feature taxonomy.",
+    "The current core-feature map has no core feature assigned to social_networks or style; those dimensions may have descriptive profiles only until a separately justified research extension exists.",
+    "Reference means/prevalences/gaps are reproduced in the existing Table 16 source file; this registry does not create per-story numeric thresholds.",
+    "The 33 reference patterns include alternative options within the same feature. They must never be counted as separate features or votes.",
+    "No absence can be assigned a directional pattern by default.",
+    "Numeric Table 16 values are not duplicated in this registry; validation reads the existing canonical Table 16 fixture to avoid multiple sources of truth.",
+    "Pattern-level source provenance is direction-specific: AI-elevated patterns cite Tables 14 and 16; human-elevated patterns cite Tables 15 and 16. Table 16 is the source for all numerical values.",
+    "Five features have no option-level numeric rows in Table 16 (Character Introduction, Dialogue Function, Mode of Resolution, Intertextual Strategy Types, Moral Polarity Toward Protagonist). Their directional labels are grounded in the canonical feature map and Tables 14/15; no numeric values are invented.",
+    "Structural checks for this draft were performed ad hoc. A reproducible registry validator is not yet part of the repository or CI and will be a separate task.",
+    "Legacy v0.2.3 canonical files may retain historical naming. This is documentary provenance, not a dependency or identity of StoryScope.",
+    "historical_reference_pattern_id is added in registry version 0.1.2-draft as an explicit, validated selection of an existing reference pattern. It is not a new empirical claim: if an AI pattern exists, that pattern is selected; otherwise the human pattern is selected.",
+    "For the current 30 features, historical_reference_pattern_id is mandatory and non-null. Future features without directional patterns may use null and then support only not_assessed relations.",
+    "historical_reference_pattern_id is resolved by feature_id plus AnalysisRun.feature_registry_version; it is not duplicated in EvidenceRecord. Registry schema 1.1.0 adds this field; registry version 0.1.1-draft used schema 1.0.0.",
+    "In the three bidirectional features, the historical reference is the AI pattern as a compatibility convention for historical comparison. This is not a hierarchy of quality between human and AI writing."
+  ],
+  "source_provenance_policy": {
+    "ai_elevated_patterns": "Table 14 identifies the AI-elevated core feature/option; Table 16 supplies the human/AI values and gaps.",
+    "human_elevated_patterns": "Table 15 identifies the human-elevated core feature/option; Table 16 supplies the human/AI values and gaps.",
+    "table16_scope": "All 30 core features and their human/AI values and gaps are referenced from Table 16.",
+    "prohibition": "Do not assign Tables 14 and 15 indiscriminately to every pattern; source attribution is direction-specific."
+  }
+}
