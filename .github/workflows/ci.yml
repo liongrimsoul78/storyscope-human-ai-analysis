@@ -42,6 +42,10 @@ jobs:
           mkdir -p _export
           git -c core.autocrlf=false archive --format=tar HEAD | tar -x -C _export
 
+      - name: Verify SHA-256 manifest (strict, real checkout)
+        working-directory: ${{ github.workspace }}
+        run: python validation/verify_manifest.py --strict
+
       - name: Validate Feature Registry v0.1.2 against v0.1.1 baseline
         working-directory: _export
         run: >
@@ -53,6 +57,10 @@ jobs:
       - name: Run Feature Registry v0.1.2 test suite
         working-directory: _export
         run: python -m unittest discover -s tests -p "test_feature_registry_v0_1_2.py" -v
+
+      - name: Run manifest verifier test suite
+        working-directory: _export
+        run: python -m unittest discover -s tests -p "test_verify_manifest.py" -v
 
       - name: Validate 30 features, options, directions, and gaps
         working-directory: _export
