@@ -43,7 +43,7 @@ jobs:
           git -c core.autocrlf=false archive --format=tar HEAD | tar -x -C _export
 
       - name: Validate Feature Registry v0.1.2 against v0.1.1 baseline
-        working-directory: ${{ github.workspace }}
+        working-directory: _export
         run: >
           python validation/validate_feature_registry_v0_1_2.py
           --registry docs/design/v0.3.0/FEATURE_REGISTRY_v0.1.2-draft.json
@@ -51,7 +51,7 @@ jobs:
           --verbose
 
       - name: Run Feature Registry v0.1.2 test suite
-        working-directory: ${{ github.workspace }}
+        working-directory: _export
         run: python -m unittest discover -s tests -p "test_feature_registry_v0_1_2.py" -v
 
       - name: Validate 30 features, options, directions, and gaps
@@ -62,36 +62,9 @@ jobs:
         working-directory: _export
         run: python validation/check_source_table16.py
 
-      - name: Verify SHA-256 manifest (strict, clean copy)
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: |
-          python - <<'PY'
-          import os
-          import shutil
-          import subprocess
-          import sys
-          import tempfile
-          from pathlib import Path
-
-          root = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
-          excluded = {".git", "_export", "__pycache__", ".pytest_cache", ".mypy_cache", ".venv", "venv", "node_modules"}
-
-          def ignore(directory, names):
-              return {
-                  name for name in names
-                  if name in excluded or name.endswith((".pyc", ".pyo"))
-              }
-
-          with tempfile.TemporaryDirectory() as temporary_directory:
-              clean_copy = Path(temporary_directory) / "clean-copy"
-              shutil.copytree(root, clean_copy, ignore=ignore)
-              result = subprocess.run(
-                  [sys.executable, "validation/verify_manifest.py", "--strict"],
-                  cwd=clean_copy,
-              )
-              raise SystemExit(result.returncode)
-          PY
+      - name: Verify SHA-256 manifest (strict, canonical Git export)
+        working-directory: _export
+        run: python validation/verify_manifest.py --strict
 
       - name: Run acceptance tests
         working-directory: _export
