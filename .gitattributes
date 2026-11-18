@@ -1,0 +1,6 @@
+# StoryScope: canonical text storage and checkout use LF on every platform.
+# Phase 1.18 inventory: all 36 tracked files are UTF-8 text without BOM, no
+# binaries and no CRLF in any Git blob. `text=auto` leaves future binary files
+# untouched; `eol=lf` makes the working tree independent of core.autocrlf, so
+# MANIFEST_SHA256SUMS.txt verifies identically in-tree and in git-archive exports.
+* text=auto eol=lf
