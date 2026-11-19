@@ -173,7 +173,7 @@ Etiquetas de decisión (clasificación documental, **no** enums de StoryScope):
 | M-27 | F | idem | `no_major_withholding`, `no_direct_address`, `no_anachrony` | característica | opciones de ausencia citadas, no registradas | `EvidenceRecord` | `observed`; `observed_option_id=null`; `observed_value_text` literal | span; oportunidad suficiente |
 | M-28 | D | `Dimensión` (tabla §3) | cualquier estado | dimensión sin `feature_id` | observación descriptiva de dimensión | `DimensionProfile` | `neutral_summary`; `limitations`; `coverage_status` | no se convierte en `EvidenceRecord` |
 | M-29 | F | `Característica/valor observado` (tabla §4) | cualquier valor | característica sin `feature_id` resoluble | registro atómico sin referencia canónica | — | — | rechazo de fila |
-| M-30 | F+/D | `Estado` o `Dirección` | token no reconocido | cualquiera | vocabulario fuera de las fuentes | — | — | rechazo de fila |
+| M-30 | F+/D | `Estado de evidencia (5)` | token no reconocido | cualquiera | vocabulario fuera de las fuentes (estado) | — | — | rechazo de fila |
 | M-31 | F+ | ambos | combinación imposible | cualquiera | estado y dirección se contradicen | — | — | rechazo de fila |
 | M-32 | F | fila completa | duplicado en la misma localización fuente | cualquiera | reextracción de la misma fila | un registro o cuarentena | deduplicar si idénticas; cuarentena si difieren | misma `(digest, sublocator)` |
 | M-33 | F | `Dirección del estudio` (tabla §4) | p. ej. `AI` | característica | dirección elevada del paper, no del texto | — | — | nunca se copia a `research_alignment`; se resuelve desde el registro |
@@ -206,11 +206,11 @@ Etiquetas de decisión (clasificación documental, **no** enums de StoryScope):
 | M-01 | valor observado + justificación | obligatorio, literal | `INV-A2-09`: alineación = referencia | = `historical_reference_pattern_id` (IA) | ninguna | A | conversión fiel | `evidence-status.md` fila 1; `report-template.md` §3; Spec §5.3 |
 | M-02 | idem | obligatorio | idem con dirección humana | = referencia (humana) | ninguna | A | conversión fiel | idem |
 | M-03 | idem | obligatorio | referencia histórica = patrón IA | = referencia | ninguna | A | conversión fiel | Spec §5.3.5 |
-| M-04 | idem | obligatorio | A2 exigiría `opposed`, pero R-04 está bloqueada | = patrón IA | fila no convertida | B | conversión no segura | Spec §5.3.5; `INV-A2-10`; §16.2 |
+| M-04 | idem | obligatorio | A2 exigiría `opposed`, pero R-04 está bloqueada | = patrón IA | fila no convertida | — | conversión no segura | Spec §5.3.5; `INV-A2-10`; §16.2 |
 | M-05 | — | — | no existe dirección elevada opuesta en unidireccional | — | fila no convertida | D | conversión no segura | Spec §6.4; CSV |
 | M-06 | — | — | contradicción interna de la fuente | — | fila no convertida | D | conversión no segura | `evidence-status.md` paso 3 |
 | M-07 | — | — | oposición contra la referencia no es oposición | — | fila no convertida | D | conversión no segura | `INV-A2-10` |
-| M-08 | span + justificación (si existen) | recomendado | no resoluble sin asumir referencia AI-first | irresoluble | cuarentena | B | conversión no segura | `evidence-status.md` fila 2; Spec §5.3.5 |
+| M-08 | span + justificación (si existen) | recomendado | no resoluble sin asumir referencia AI-first | irresoluble | cuarentena | — | conversión no segura | `evidence-status.md` fila 2; Spec §5.3.5 |
 | M-09 | valor alternativo + span + justificación | obligatorio | `INV-A2-11`: unidireccional `opposed` sin patrón | referencia de la característica | dirección histórica solo en procedencia | B | conversión condicionada | Spec §6.4; §6.5 |
 | M-10 | ancla + span + justificación | obligatorio | §6.5: sin umbrales ni anclas inventadas | referencia de la característica | sin ancla, la oposición no es verificable | B | conversión condicionada | Spec §6.5; `INV-A2-15` |
 | M-11 | span | obligatorio | regla 5: `observed` exige span verificable | — | fila no convertida | D | conversión no segura | Spec §5.3 regla 5; §5.4 |
@@ -319,6 +319,8 @@ El registro no contiene umbrales por historia. Un valor «alto» o «4/5» no ba
 | texto fuente ausente | spans no verificables | rechazo de ejecución |
 | dos observaciones indistinguibles en una fila | sublocalizador ambiguo | preservar o revisar (`CE-037`) |
 | contraevidencia sin span/justificación propios | no se puede emitir | cuarentena (`CE-009`/`CE-010`/`CE-039`) |
+
+**Nota sobre la dirección en la ruta D.** En la ruta D, `legacy_direction` es opcional. Su ausencia o su no normalización **no** convierten la fila en no convertible ni activan rechazo (R-D07); el token se conserva literalmente y no se usa para producir `research_alignment`. La única exigencia de la ruta D es un `legacy_state` válido (R-01, R-D01). Por eso M-13…M-16 y M-28/M-52 preservan filas sin depender de una dirección. R-02 se aplica únicamente a entradas F+.
 
 ### 3.3 Pérdidas potenciales
 

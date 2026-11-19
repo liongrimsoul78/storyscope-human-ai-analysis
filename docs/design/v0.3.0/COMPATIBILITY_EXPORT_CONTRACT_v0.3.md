@@ -391,11 +391,13 @@ La plantilla `v0.2.3` tiene dos tablas de niveles distintos. **No se hace join a
 | `Observación respaldada` | §3 | dimensión | siempre | `DimensionProfile.neutral_summary` | — | no es registro atómico | descriptiva |
 | `Estado de evidencia (5)` | §3 | dimensión | siempre | `DimensionProfile.coverage_status` (derivado) | regla R-13…R-16 | el token literal solo en el informe | dimensión ≠ característica |
 | `Clúster` | §3 | dimensión | opcional | agrupación de perfiles | `cluster_id` resoluble | — | — |
-| `Dirección` | §3 | dimensión | opcional | **ninguno** | — | no convertible a `research_alignment` | dimensión ≠ característica |
+| `Dirección` | §3 | dimensión | opcional | **ninguno** | opcional; si existe se conserva literalmente; su ausencia no rechaza la fila (R-D07) | no convertible a `research_alignment` | dimensión ≠ característica |
 | `Fuerza` | §3 | dimensión | opcional (texto libre) | **ninguno** | — | preservar en informe | texto libre |
 | `Por qué / alternativa contextual` | §3 | dimensión | opcional | `DimensionProfile.limitations` | — | — | — |
 
 **Regla D:** una fila de §3 **nunca** genera `EvidenceRecord`. El estado y la dirección de dimensión no se replican en características.
+
+**Nota sobre `legacy_direction` en ruta D.** `legacy_direction` es **opcional**. Su ausencia o su no normalización **no** rechazan la fila: el token se conserva literalmente en `legacy_raw` y no se usa para producir `research_alignment` (R-D07). La dirección de dimensión nunca se replica en características (R-D06). La única exigencia de ruta D es `legacy_state` válido (R-01, R-D01).
 
 ### 8.2 Ruta F — §4, nivel característica
 
@@ -453,8 +455,8 @@ Cada fila produce **exactamente un** resultado: `converted`, `converted_with_fla
 | ID | Condición | Acción | Destino | Diagnóstico |
 |---|---|---|---|---|
 | R-01 | fila §3 sin `legacy_state` | rechazar fila | — | `CE-025` |
-| R-02 | `legacy_direction` ausente o no reconocido | rechazar fila | — | `CE-002` |
 | R-D01 | `legacy_state` no reconocido | rechazar fila | — | `CE-001` |
+| R-D07 | `legacy_direction` ausente o no reconocido en ruta D | preservar; conservar el token literal en `legacy_raw`; **no** rechazar la fila; **no** producir `research_alignment` | `DimensionProfile` | `CE-002` informativo |
 | R-D02 | `dimension_name` no resoluble | rechazar fila | — | `CE-018` |
 | R-D03 | `cluster_name` no resoluble | convertir con bandera; `cluster_id=null` | `DimensionProfile` | `CE-017` |
 | R-13 | `Ausente` + `completeness=completo` | preservar; `coverage_status=descriptive_assessed` | `DimensionProfile` | `CE-040` informativo |
@@ -474,6 +476,7 @@ Estas reglas solo se aplican cuando una fila de característica porta **explíci
 
 | ID | Condición | Acción | Destino | Diagnóstico |
 |---|---|---|---|---|
+| R-02 | `legacy_direction` ausente o no reconocido en F+ | rechazar fila | — | `CE-002` |
 | R-03 | `Presente–alineado` + dirección = dirección de la referencia histórica | convertir | `observed` + `pattern_ai`/`pattern_human` + `reference_pattern_id`=referencia + `aligned` | span; justificación |
 | R-04 | `Presente–alineado` + polo humano en bidireccional | **BLOQUEADA**: no convertir hasta que la guía de anotación justifique la reexpresión como `opposed` | — | `CE-021` (bloqueo) |
 | R-05 | `Presente–alineado` + dirección opuesta, unidireccional | rechazar fila | — | `CE-008` |
@@ -531,7 +534,7 @@ La derivación se registra en el informe. No se inventa una evaluación de oport
 ### 9.5 Precedencia
 
 1. Rechazo de ejecución (R-29, R-34, R-30e) antes que cualquier fila.
-2. Rechazo de fila (R-01, R-02, R-D01, R-D02, R-05, R-06, R-07, R-09a, R-09b, R-18, R-F01, R-F02) antes que cualquier conversión.
+2. Rechazo de fila (R-01, R-D01, R-D02, R-05, R-06, R-07, R-09a, R-09b, R-18, R-F01, R-F02; R-02 solo en F+) antes que cualquier conversión.
 3. Cuarentena (R-04, R-08, R-11, R-12, R-15, R-16, R-19, R-F03…R-F07, R-31c, R-36) antes que emisión.
 4. Conversión.
 5. Deduplicación (R-31) sobre el conjunto ya convertido; R-31b no deduplica.
@@ -738,7 +741,7 @@ Una exportación que dependa de la fecha de ejecución, del orden de iteración 
 
 ## 13. Reversibilidad
 
-Se distinguen cuatro clases. La clasificación se declara por fila en la matriz.
+Se distinguen cuatro clases, más `—` cuando no existe registro convertido. La clasificación se declara por fila en la matriz.
 
 | Clase | Definición | Ejemplo |
 |---|---|---|
@@ -746,6 +749,7 @@ Se distinguen cuatro clases. La clasificación se declara por fila en la matriz.
 | **B. Reversible solo con el original preservado** | el registro no basta; hace falta el token literal o el texto del informe | §3 con `Presente–alineado`/`Presente–opuesto`/`neutral`/`Ausente` (el `coverage_status` es más grueso que el estado); `Presente–opuesto` unidireccional en F+ (la dirección solo está en `legacy_raw`); `Fuerza` libre; contraevidencia preservada sin registro |
 | **C. Irreversible** | no existe reconstrucción fiel ni con el original | ninguno dentro de este contrato |
 | **D. Debe rechazarse** | no se emite registro | contradicciones; `feature_id` ausente; estado o dirección desconocidos; versión de registro irresoluble; procedencia no demostrable |
+| **`—`. No aplica** | no existe registro convertido (cuarentena o bloqueo sin emisión; la reversibilidad de un registro inexistente no se evalúa) | M-04 (R-04 bloqueada); M-08 (`Presente–opuesto` bidireccional en cuarentena) |
 
 **Por qué no hay clase C.** Toda fila convertida conserva en el informe sus tokens literales y su texto. Ninguna conversión descarta un valor sin dejarlo registrado. Si una conversión exigiera descartar información y no pudiera preservarla, el contrato la clasifica como D, no como C.
 
@@ -795,7 +799,7 @@ Los diagnósticos viven **solo** en `compatibility_export_report.json`. No se es
 | Código | Significado | Acción |
 |---|---|---|
 | `CE-001` | estado histórico desconocido | rechazar fila |
-| `CE-002` | dirección histórica desconocida | rechazar fila |
+| `CE-002` | dirección histórica desconocida | rechazar fila (solo F+); en ruta D se preserva (`CE-002` informativo) |
 | `CE-003` | fila de característica sin `feature_id` | rechazar fila |
 | `CE-004` | nombre de característica no resoluble | rechazar fila |
 | `CE-005` | versión de Feature Registry inexistente | rechazar ejecución |

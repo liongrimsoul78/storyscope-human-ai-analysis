@@ -81,7 +81,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Ruta | D |
 | Fuente y estado de entrada | dimensión `Setting`; `Ausente`; ejecución `completo`; búsqueda declarada |
 | Campos disponibles | motivo, alcance de búsqueda, longitud suficiente |
-| Campos ausentes | `feature_id` (no aplica en §3) |
+| Campos ausentes | `feature_id` (no aplica en §3); `legacy_direction` (opcional en ruta D; su ausencia o no normalización no rechazan la fila) |
 | Tipo de característica | no aplica (dimensión) |
 | Evidencia y localización | `search_scope=full_text`; motivo |
 | Versión del Registry | `0.1.2-draft` |
@@ -99,7 +99,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Ruta | D |
 | Fuente y estado de entrada | misma dimensión que TV-08; `Ausente`; ejecución `fragmento` |
 | Campos disponibles | estado, motivo |
-| Campos ausentes | completitud |
+| Campos ausentes | completitud; `legacy_direction` (opcional en ruta D) |
 | Tipo de característica | no aplica (dimensión) |
 | Evidencia y localización | ninguna |
 | Versión del Registry | `0.1.2-draft` |
@@ -117,7 +117,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Ruta | D |
 | Fuente y estado de entrada | dimensión `Plot`; `No aplicable`; género «etiqueta de producto» |
 | Campos disponibles | motivo de no aplicabilidad |
-| Campos ausentes | cita de característica |
+| Campos ausentes | cita de característica; `legacy_direction` (opcional en ruta D) |
 | Tipo de característica | no aplica (dimensión) |
 | Evidencia y localización | no procede |
 | Versión del Registry | `0.1.2-draft` |
@@ -135,7 +135,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Ruta | D |
 | Fuente y estado de entrada | microrelato de 21 palabras; dimensión `Plot`; `No evaluable` |
 | Campos disponibles | motivo (longitud), longitud, género |
-| Campos ausentes | cita de característica |
+| Campos ausentes | cita de característica; `legacy_direction` (opcional en ruta D) |
 | Tipo de característica | no aplica (dimensión) |
 | Evidencia y localización | no procede |
 | Versión del Registry | `0.1.2-draft` |
@@ -737,7 +737,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Ruta | D |
 | Fuente y estado de entrada | dimensión `Setting`; `Ausente`; ejecución completa; búsqueda declarada |
 | Campos disponibles | motivo, búsqueda |
-| Campos ausentes | `feature_id` |
+| Campos ausentes | `feature_id`; `legacy_direction` (opcional en ruta D) |
 | Tipo de característica | no aplica |
 | Evidencia y localización | `search_scope=full_text` |
 | Versión del Registry | `0.1.2-draft` |
@@ -755,7 +755,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Ruta | D |
 | Fuente y estado de entrada | dimensión `Plot`; `No aplicable`; género «etiqueta de producto» |
 | Campos disponibles | motivo |
-| Campos ausentes | cita de característica |
+| Campos ausentes | cita de característica; `legacy_direction` (opcional en ruta D) |
 | Tipo de característica | no aplica |
 | Evidencia y localización | no procede |
 | Versión del Registry | `0.1.2-draft` |
@@ -773,7 +773,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Ruta | D |
 | Fuente y estado de entrada | microrelato de 21 palabras; dimensión `Plot`; `No evaluable` |
 | Campos disponibles | motivo |
-| Campos ausentes | cita de característica |
+| Campos ausentes | cita de característica; `legacy_direction` (opcional en ruta D) |
 | Tipo de característica | no aplica |
 | Evidencia y localización | no procede |
 | Versión del Registry | `0.1.2-draft` |

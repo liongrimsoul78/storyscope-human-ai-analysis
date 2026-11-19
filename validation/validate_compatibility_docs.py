@@ -233,12 +233,30 @@ def main() -> int:
         "contract does not state the (source_document_sha256, legacy_sublocator) key",
     )
     report.check(
+        "no existe registro convertido" in contract_text,
+        "contract must define the — reversibility class",
+    )
+    report.check(
         len(contract["ce"]) == len(set(contract["ce"])),
         "duplicate CE diagnostic definitions",
     )
 
     # ------------------------------------------------------------------ matrix
     a, b = matrix["a"], matrix["b"]
+
+    # R-02 must not be applied to route D: it lives only in the F+ rule set.
+    report.check(
+        contract_text.count("| R-02 |") == 1,
+        "R-02 must be declared exactly once, in the F+ rule set",
+    )
+    report.check(
+        "| R-02 | `legacy_direction` ausente o no reconocido en F+" in contract_text,
+        "R-02 must be scoped to F+ only",
+    )
+    report.check(
+        "R-D07" in contract["rules"],
+        "R-D07 (optional direction in route D) must be declared",
+    )
     report.check(bool(a), "matrix Table A has no rows")
     report.check(set(a) == set(b), "matrix Table A and Table B row sets differ")
     report.check(len(a) == 54, f"matrix has {len(a)} rows; expected 54")
@@ -258,6 +276,26 @@ def main() -> int:
         report.check(
             classes <= {"A", "B", "C", "D", "—"},
             f"{row_id}: unknown reversibility {row['reversibility']!r}",
+        )
+        # Reversibility must not contradict the existence of a converted record:
+        # "—" is only valid when no EvidenceRecord is emitted.
+        emits_record = "EvidenceRecord" in a[row_id]["target_field"]
+        if row["reversibility"].strip() == "—":
+            report.check(
+                not emits_record,
+                f"{row_id}: reversibility — but the row emits an EvidenceRecord",
+            )
+        if emits_record:
+            report.check(
+                row["reversibility"].strip() != "—",
+                f"{row_id}: emits an EvidenceRecord but has no reversibility class",
+            )
+
+    # M-04 and M-08 are blocked/quarantined without a destination record.
+    for row_id in ("M-04", "M-08"):
+        report.check(
+            b[row_id]["reversibility"].strip() == "—",
+            f"{row_id}: blocked/quarantined row must use reversibility —",
         )
 
     actual_counts = Counter(row["decision"] for row in b.values())
@@ -388,6 +426,12 @@ def main() -> int:
                 not positive,
                 f"{vid}: a §3 dimension row must not emit {state}",
             )
+        # Route D does not require legacy_direction; the vector must say so.
+        body = v03.get(vid, {}).get("body", "")
+        report.check(
+            "legacy_direction" in body,
+            f"{vid}: must state that legacy_direction is optional in route D",
+        )
 
     # v0.3 results mention a contract outcome, an emitted object, or a
     # run-level destination. This catches empty or malformed result cells.
