@@ -1,0 +1,427 @@
+#!/usr/bin/env python3
+"""Validate the v0.3 compatibility export documents against each other.
+
+The validator is documentary: it does not implement or simulate the exporter.
+It checks that the contract, the mapping matrix and the test vectors agree on
+the identifiers and vocabularies they share:
+
+* rule identifiers declared in the contract;
+* diagnostic codes (CE-xxx) declared once and used consistently;
+* matrix row identifiers, decisions, routes and reversibility classes;
+* vector identifiers across the preserved v0.1/v0.2 chain and the v0.3 set;
+* coverage: every one of the 70 vectors appears in the coverage table;
+* the specific v0.3 decisions (R-04 blocked, TV-03 quarantine, TV-56 route F+,
+  no not_observed from a §3 dimension row).
+
+Standard library only. Exit code 0 means PASS.
+"""
+from __future__ import annotations
+
+import re
+import sys
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+DESIGN = ROOT / "docs" / "design" / "v0.3.0"
+
+CONTRACT = DESIGN / "COMPATIBILITY_EXPORT_CONTRACT_v0.3.md"
+MATRIX = DESIGN / "COMPATIBILITY_MAPPING_MATRIX_v0.3.md"
+VECTORS = DESIGN / "COMPATIBILITY_TEST_VECTORS_v0.3.md"
+VECTORS_V02 = DESIGN / "COMPATIBILITY_TEST_VECTORS_v0.2.md"
+VECTORS_V01 = DESIGN / "COMPATIBILITY_TEST_VECTORS_v0.1.md"
+
+CE_RE = re.compile(r"CE-\d{3}")
+RULE_RE = re.compile(r"^\| (R-[0-9]{2}[a-z]?|R-D\d{2}|R-F\d{2}) \|", re.M)
+MATRIX_ID_RE = re.compile(r"M-\d{2}")
+VECTOR_ID_RE = re.compile(r"TV-\d{2}")
+HEADING_RE = re.compile(r"^### (TV-\d+) — (.+)$", re.M)
+
+ALLOWED_ROUTES = {"D", "F", "F+", "X"}
+ALLOWED_DECISIONS = {
+    "conversión fiel",
+    "conversión condicionada",
+    "preservación sin conversión",
+    "conversión no segura",
+    "no evaluable con la evidencia disponible",
+}
+ALLOWED_OUTCOMES = {
+    "converted",
+    "converted_with_flag",
+    "preserved",
+    "quarantined",
+    "rejected",
+}
+# Vectors describe a result as a state or as an emitted object; these are the
+# signals accepted in addition to the contract outcome words.
+RESULT_SIGNALS = ALLOWED_OUTCOMES | {
+    "observed",
+    "rechazo",
+    "conversión permitida",
+    "EvidenceRecord",
+    "run_level",
+    "Presente–alineado",
+    "registro",
+}
+
+# v0.3 redefines the F+ legacy vectors that changed meaning, and reproduces
+# the whole TV-35…TV-56 projection block. TV-01…TV-34 keep their v0.1 text
+# except for these revisions.
+REVISED_LEGACY = {3, 4, 8, 9, 10, 11, 17, 29, 40}
+EXPECTED_V03_VECTORS = sorted(REVISED_LEGACY | set(range(35, 71)))
+
+
+class Report:
+    def __init__(self) -> None:
+        self.errors: list[str] = []
+        self.checks = 0
+
+    def check(self, condition: bool, message: str) -> None:
+        self.checks += 1
+        if not condition:
+            self.errors.append(message)
+
+
+def read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def parse_contract(text: str) -> dict:
+    ce_defs: dict[str, str] = {}
+    for code, meaning, action in re.findall(
+        r"^\| `(CE-\d{3})` \| (.+?) \| (.+?) \|$", text, re.M
+    ):
+        ce_defs[code] = f"{meaning} / {action}"
+
+    rules = RULE_RE.findall(text)
+
+    # R-04 must stay blocked.
+    r04_lines = [line for line in text.splitlines() if line.startswith("| R-04 |")]
+    return {
+        "ce": ce_defs,
+        "rules": rules,
+        "r04": r04_lines[0] if r04_lines else "",
+        "has_idempotency_key": "(source_document_sha256, legacy_sublocator)" in text,
+        "ce021_informativo": "CE-021` informativo" in text,
+    }
+
+
+def parse_matrix(text: str) -> dict:
+    table_a_start = text.index("### 2.2 Tabla A")
+    table_b_start = text.index("### 2.3 Tabla B")
+    counts_start = text.index("### 2.4 Recuento de decisiones")
+    table_a = text[table_a_start:table_b_start]
+    table_b = text[table_b_start:counts_start]
+
+    rows_a: dict[str, dict] = {}
+    for line in table_a.splitlines():
+        if not line.startswith("| M-"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 9:
+            continue
+        rows_a[cells[0]] = {
+            "route": cells[1],
+            "legacy_field": cells[2],
+            "legacy_value": cells[3],
+            "legacy_scope": cells[4],
+            "legacy_meaning": cells[5],
+            "target_field": cells[6],
+            "target_value": cells[7],
+            "conditions": cells[8],
+        }
+
+    rows_b: dict[str, dict] = {}
+    for line in table_b.splitlines():
+        if not line.startswith("| M-"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 9:
+            continue
+        rows_b[cells[0]] = {
+            "evidence": cells[1],
+            "span": cells[2],
+            "rationale": cells[3],
+            "reference": cells[4],
+            "loss": cells[5],
+            "reversibility": cells[6],
+            "decision": cells[7],
+            "source": cells[8],
+        }
+
+    declared_counts: dict[str, int] = {}
+    for line in text[counts_start:].splitlines():
+        match = re.match(r"^\| (.+?) \| (M-\d.*?) \| (\d+) \|$", line)
+        if match and match.group(1) in ALLOWED_DECISIONS:
+            declared_counts[match.group(1)] = int(match.group(3))
+
+    return {"a": rows_a, "b": rows_b, "declared_counts": declared_counts}
+
+
+def parse_vectors(path: Path) -> dict[str, dict]:
+    text = read(path)
+    chunks = re.split(r"^### (TV-\d+) — (.+)$", text, flags=re.M)
+    vectors: dict[str, dict] = {}
+    for index in range(1, len(chunks), 3):
+        vid, title, body = chunks[index], chunks[index + 1], chunks[index + 2]
+
+        def field(name: str) -> str:
+            match = re.search(
+                r"^\| " + re.escape(name) + r" \| (.*?) \|$", body, re.M
+            )
+            return match.group(1) if match else ""
+
+        vectors[vid] = {
+            "title": title,
+            "route": field("Ruta"),
+            "result": field("Resultado esperado"),
+            "reversibility": field("Reversibilidad"),
+            "matrix": field("Matriz"),
+            "body": body,
+        }
+    return vectors
+
+
+def coverage_ids(text: str) -> list[str]:
+    start = text.index("## 5. Cobertura exigida")
+    end = text.index("## 6. Criterios de aceptación")
+    return VECTOR_ID_RE.findall(text[start:end])
+
+
+def main() -> int:
+    report = Report()
+
+    contract_text = read(CONTRACT)
+    matrix_text = read(MATRIX)
+    vectors_text = read(VECTORS)
+
+    contract = parse_contract(contract_text)
+    matrix = parse_matrix(matrix_text)
+    v03 = parse_vectors(VECTORS)
+    v02 = parse_vectors(VECTORS_V02)
+    v01 = parse_vectors(VECTORS_V01)
+
+    # ---------------------------------------------------------------- contract
+    report.check(bool(contract["rules"]), "contract declares no conversion rules")
+    report.check(
+        len(contract["rules"]) == len(set(contract["rules"])),
+        "duplicate rule identifiers in the contract",
+    )
+    referenced_rules = set(
+        re.findall(r"\b(R-[0-9]{2}[a-z]?|R-D\d{2}|R-F\d{2})\b", contract_text)
+    )
+    report.check(
+        referenced_rules <= set(contract["rules"]),
+        "contract references undefined rules: "
+        f"{sorted(referenced_rules - set(contract['rules']))}",
+    )
+    report.check(
+        "BLOQUEADA" in contract["r04"],
+        "R-04 is not marked as blocked in the contract",
+    )
+    report.check(
+        not contract["ce021_informativo"],
+        "CE-021 is still used as an informative code; it is reserved for R-04",
+    )
+    ce021 = contract["ce"].get("CE-021", "")
+    report.check(
+        "R-04" in ce021 and "cuarentena" in ce021,
+        "CE-021 must be defined as the R-04 quarantine code",
+    )
+    report.check(
+        contract["has_idempotency_key"],
+        "contract does not state the (source_document_sha256, legacy_sublocator) key",
+    )
+    report.check(
+        len(contract["ce"]) == len(set(contract["ce"])),
+        "duplicate CE diagnostic definitions",
+    )
+
+    # ------------------------------------------------------------------ matrix
+    a, b = matrix["a"], matrix["b"]
+    report.check(bool(a), "matrix Table A has no rows")
+    report.check(set(a) == set(b), "matrix Table A and Table B row sets differ")
+    report.check(len(a) == 54, f"matrix has {len(a)} rows; expected 54")
+
+    for row_id, row in a.items():
+        routes = {part.strip() for part in row["route"].split("/")}
+        report.check(
+            routes <= ALLOWED_ROUTES,
+            f"{row_id}: unknown route {row['route']!r}",
+        )
+    for row_id, row in b.items():
+        report.check(
+            row["decision"] in ALLOWED_DECISIONS,
+            f"{row_id}: unknown decision {row['decision']!r}",
+        )
+        classes = {part.strip() for part in row["reversibility"].split("/")}
+        report.check(
+            classes <= {"A", "B", "C", "D", "—"},
+            f"{row_id}: unknown reversibility {row['reversibility']!r}",
+        )
+
+    actual_counts = Counter(row["decision"] for row in b.values())
+    report.check(
+        dict(actual_counts) == matrix["declared_counts"],
+        "matrix decision counts disagree with section 2.4: "
+        f"actual={dict(actual_counts)} declared={matrix['declared_counts']}",
+    )
+    report.check(
+        sum(actual_counts.values()) == 54,
+        "matrix decision counts do not sum to 54",
+    )
+
+    for code in CE_RE.findall(matrix_text):
+        report.check(code in contract["ce"], f"matrix uses undefined {code}")
+    for code in CE_RE.findall(vectors_text):
+        report.check(code in contract["ce"], f"vectors use undefined {code}")
+
+    defined_rules = set(contract["rules"])
+    for label, text in (("matrix", matrix_text), ("vectors", vectors_text)):
+        for rule in re.findall(r"\b(R-[0-9]{2}[a-z]?|R-D\d{2}|R-F\d{2})\b", text):
+            report.check(
+                rule in defined_rules,
+                f"{label} references undefined rule {rule}",
+            )
+
+    # ----------------------------------------------------------------- vectors
+    defined_v03 = {int(vid.split("-")[1]) for vid in v03}
+    report.check(
+        sorted(defined_v03) == EXPECTED_V03_VECTORS,
+        "v0.3 vector headings do not match the expected revision set: "
+        f"{sorted(defined_v03)}",
+    )
+
+    union = set(v01) | set(v02) | set(v03)
+    expected_union = {f"TV-{number:02d}" for number in range(1, 71)}
+    report.check(
+        union == expected_union,
+        "vector chain does not cover TV-01…TV-70: "
+        f"missing={sorted(expected_union - union)} extra={sorted(union - expected_union)}",
+    )
+
+    covered = coverage_ids(vectors_text)
+    report.check(
+        set(covered) == expected_union,
+        "coverage table does not reference every vector: "
+        f"missing={sorted(expected_union - set(covered))} "
+        f"unknown={sorted(set(covered) - expected_union)}",
+    )
+
+    for vid, vector in v03.items():
+        for code in CE_RE.findall(vector["body"]):
+            report.check(code in contract["ce"], f"{vid}: undefined diagnostic {code}")
+        vector_routes = {part.strip() for part in vector["route"].split("/") if part.strip()}
+        referenced_routes: set[str] = set()
+        for row_id in MATRIX_ID_RE.findall(vector["matrix"]):
+            report.check(row_id in a, f"{vid}: unknown matrix row {row_id}")
+            if vector_routes and row_id in a:
+                matrix_routes = {part.strip() for part in a[row_id]["route"].split("/")}
+                referenced_routes |= matrix_routes
+                report.check(
+                    bool(vector_routes & matrix_routes),
+                    f"{vid}: route {vector['route']!r} incompatible with "
+                    f"{row_id} route {a[row_id]['route']!r}",
+                )
+        if vector_routes and referenced_routes:
+            report.check(
+                vector_routes <= referenced_routes,
+                f"{vid}: route {vector['route']!r} is not covered by its matrix rows "
+                f"{sorted(referenced_routes)}",
+            )
+
+    # TV-03: quarantine only, never in a conversion coverage row.
+    tv03 = v03.get("TV-03", {})
+    report.check(
+        "quarantined" in tv03.get("result", "")
+        and "CE-035" in tv03.get("result", ""),
+        "TV-03 must remain quarantined with CE-035",
+    )
+    for line in vectors_text.splitlines():
+        if not line.startswith("|") or "TV-03" not in line:
+            continue
+        label = line.strip().strip("|").split("|")[0].strip()
+        report.check(
+            "Conversión" not in label and "Preservación" not in label,
+            f"TV-03 appears under a non-quarantine coverage row: {label!r}",
+        )
+
+    # TV-17 / TV-40: R-04 blocked.
+    for vid in ("TV-17", "TV-40"):
+        result = v03.get(vid, {}).get("result", "")
+        report.check(
+            "quarantined" in result and "CE-021" in result,
+            f"{vid} must be quarantined with CE-021",
+        )
+
+    # TV-56: F+ route and opposed result, consistent with M-09.
+    tv56 = v03.get("TV-56", {})
+    report.check(
+        tv56.get("route", "").strip() == "F+",
+        f"TV-56 route is {tv56.get('route')!r}; expected F+",
+    )
+    report.check(
+        "opposed" in tv56.get("result", ""),
+        "TV-56 must keep an opposed result consistent with R-09",
+    )
+    report.check(
+        "M-09" in tv56.get("matrix", ""),
+        "TV-56 must reference M-09",
+    )
+
+    # §3 rows must not emit not_observed / not_applicable / not_evaluable.
+    # Negative mentions ("**no** se emite `not_observed`") are allowed; only a
+    # positive emission is a contract violation.
+    for vid in ("TV-08", "TV-09", "TV-10", "TV-11", "TV-65", "TV-66", "TV-67"):
+        result = v03.get(vid, {}).get("result", "")
+        report.check(
+            "preserved" in result and "coverage_status" in result,
+            f"{vid}: a §3 dimension row must be preserved as coverage",
+        )
+        for state in ("not_observed", "not_applicable", "not_evaluable"):
+            positive = (
+                result.lstrip().startswith(f"`{state}`")
+                or f"→ `{state}`" in result
+                or f"= `{state}`" in result
+            )
+            report.check(
+                not positive,
+                f"{vid}: a §3 dimension row must not emit {state}",
+            )
+
+    # v0.3 results mention a contract outcome, an emitted object, or a
+    # run-level destination. This catches empty or malformed result cells.
+    for vid, vector in v03.items():
+        result = vector["result"]
+        report.check(
+            any(token in result for token in RESULT_SIGNALS),
+            f"{vid}: result does not mention any contract outcome or destination: "
+            f"{result[:80]!r}",
+        )
+
+    # --------------------------------------------------------- textual hygiene
+    for path in (CONTRACT, MATRIX, VECTORS):
+        text = read(path)
+        for artifact in ("<|", "\u2581", "begin_of_sentence"):
+            report.check(
+                artifact not in text,
+                f"{path.name}: corrupted token {artifact!r} present",
+            )
+
+    # ------------------------------------------------------------------ output
+    if report.errors:
+        for error in report.errors:
+            print(f"FAIL: {error}")
+        print(f"FAILED: {len(report.errors)} of {report.checks} checks failed.")
+        return 1
+
+    print(
+        f"PASS: {report.checks} cross-document checks; "
+        f"{len(contract['rules'])} rules, {len(contract['ce'])} diagnostics, "
+        f"{len(a)} matrix rows, {len(expected_union)} vectors."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
