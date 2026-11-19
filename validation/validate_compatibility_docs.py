@@ -259,7 +259,7 @@ def main() -> int:
     )
     report.check(bool(a), "matrix Table A has no rows")
     report.check(set(a) == set(b), "matrix Table A and Table B row sets differ")
-    report.check(len(a) == 54, f"matrix has {len(a)} rows; expected 54")
+    report.check(len(a) == 55, f"matrix has {len(a)} rows; expected 55")
 
     for row_id, row in a.items():
         routes = {part.strip() for part in row["route"].split("/")}
@@ -305,8 +305,8 @@ def main() -> int:
         f"actual={dict(actual_counts)} declared={matrix['declared_counts']}",
     )
     report.check(
-        sum(actual_counts.values()) == 54,
-        "matrix decision counts do not sum to 54",
+        sum(actual_counts.values()) == 55,
+        "matrix decision counts do not sum to 55",
     )
 
     for code in CE_RE.findall(matrix_text):
@@ -442,6 +442,87 @@ def main() -> int:
             f"{vid}: result does not mention any contract outcome or destination: "
             f"{result[:80]!r}",
         )
+
+    # ---------------------------------------------------------------- reversibility
+    # Precedence of v0.3 definitions over inherited v0.1/v0.2 vectors.
+    report.check(
+        "prevalece la de v0.3" in vectors_text,
+        "vectors document must state that v0.3 definitions take precedence",
+    )
+
+    # TV-03, TV-17 and TV-40 are blocked/quarantined: reversibility must be —.
+    for vid in ("TV-03", "TV-17", "TV-40"):
+        report.check(
+            v03.get(vid, {}).get("reversibility", "").strip() == "—",
+            f"{vid}: blocked/quarantined vector must use reversibility —",
+        )
+
+    for vid, vector in v03.items():
+        vrev = vector["reversibility"].strip()
+        mats = MATRIX_ID_RE.findall(vector["matrix"])
+        if not vrev or not mats:
+            continue
+        mrevs = [b[m]["reversibility"].strip() for m in mats if m in b]
+        if not mrevs:
+            continue
+        # Component set of the matrix side (composite rows use "/").
+        matrix_components: set[str] = set()
+        for mr in mrevs:
+            matrix_components |= {part.strip() for part in mr.split("/")}
+        vector_components = {part.strip() for part in vrev.split("/")}
+
+        # Correspondence: a converted result cannot coexist with — on every
+        # referenced matrix row, and vice versa.
+        result = vector["result"]
+        converted_result = (
+            "`observed`" in result
+            and "quarantined" not in result
+            and "rejected" not in result
+            and "rechazo" not in result
+        )
+        if vrev == "—":
+            report.check(
+                "quarantined" in result or "rejected" in result or "rechazo" in result,
+                f"{vid}: reversibility — requires a quarantined/rejected result",
+            )
+        if converted_result:
+            report.check(
+                vrev != "—",
+                f"{vid}: a converted result cannot have reversibility —",
+            )
+
+        # Multi-ref vectors: each component must be supported by at least one
+        # referenced matrix row; single-ref vectors must match (or be a sub-case
+        # of a composite matrix row).
+        if len(mats) == 1:
+            mr = mrevs[0]
+            if "/" in mr:
+                # composite matrix row: vector must be one of its components
+                report.check(
+                    vrev in {part.strip() for part in mr.split("/")},
+                    f"{vid}: reversibility {vrev!r} is not a sub-case of "
+                    f"{mats[0]} ({mr!r})",
+                )
+            else:
+                report.check(
+                    vrev == mr,
+                    f"{vid}: reversibility {vrev!r} disagrees with "
+                    f"{mats[0]} ({mr!r})",
+                )
+        else:
+            for comp in vector_components:
+                report.check(
+                    comp in matrix_components or comp == "—",
+                    f"{vid}: reversibility component {comp!r} is not supported by "
+                    f"its matrix rows {mats}",
+                )
+
+        # Detect B kept while every referenced matrix row is — (same result).
+        if vrev == "B" and matrix_components == {"—"}:
+            report.check(
+                False,
+                f"{vid}: keeps reversibility B while its matrix rows are —",
+            )
 
     # --------------------------------------------------------- textual hygiene
     for path in (CONTRACT, MATRIX, VECTORS):

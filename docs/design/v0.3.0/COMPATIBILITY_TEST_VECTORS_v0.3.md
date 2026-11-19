@@ -52,7 +52,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Resultado esperado | `quarantined`; `CE-035`; payload literal preservado; **no** se emite `EvidenceRecord` |
 | Justificación | dictamen v0.3: `Presente–opuesto` + `patrón humano` en bidireccional no es resoluble sin asumir referencia AI-first; la fuente histórica no declara qué polo es la referencia. La ruta F estándar (TV-58) sí puede convertir el mismo valor porque no interpreta un estado histórico. |
 | Pérdida esperada | fila no convertida; revisión humana requerida |
-| Reversibilidad | B |
+| Reversibilidad | — |
 | Matriz | M-08 |
 
 ### TV-04 — `Presente–opuesto` unidireccional con evidencia (corregido)
@@ -160,7 +160,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Resultado esperado | `quarantined`; `CE-021`; payload literal preservado; **no** se emite `EvidenceRecord` |
 | Justificación | R-04 está bloqueada: la reexpresión como `opposed` bajo AI-first no está justificada por la guía de anotación. La ruta F estándar (TV-58) no interpreta el estado histórico y sí puede convertir el valor. |
 | Pérdida esperada | fila no convertida |
-| Reversibilidad | B |
+| Reversibilidad | — |
 | Matriz | M-04 |
 
 ### TV-29 — Reconstrucción del original (revisado)
@@ -196,7 +196,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Resultado esperado | `quarantined`; `CE-021`; **no** se emite `EvidenceRecord` |
 | Justificación | R-04 bloqueada (§16.2); no se adopta la reexpresión `Presente–alineado` + polo humano → `opposed` sin justificación de la guía |
 | Pérdida esperada | fila no convertida |
-| Reversibilidad | B |
+| Reversibilidad | — |
 | Matriz | M-04 |
 
 ---
@@ -290,7 +290,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Resultado esperado | `quarantined`; `CE-035`; payload literal preservado |
 | Justificación | dictamen v0.3: no resoluble sin asumir referencia AI-first |
 | Pérdida esperada | fila no convertida |
-| Reversibilidad | B |
+| Reversibilidad | — |
 | Matriz | M-08 |
 
 ### TV-41 — `Presente–opuesto` + `patrón IA` en bidireccional
@@ -507,7 +507,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Justificación | §11.6: atestación de migración es mecanismo externo con su propia procedencia |
 | Pérdida esperada | ninguna |
 | Reversibilidad | B |
-| Matriz | M-38 |
+| Matriz | M-55 |
 
 ### TV-53 — Neutralidad con dos lecturas posibles
 

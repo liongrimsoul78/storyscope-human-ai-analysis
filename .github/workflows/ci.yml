@@ -70,6 +70,10 @@ jobs:
         working-directory: _export
         run: python validation/check_source_table16.py
 
+      - name: Validate compatibility export documents
+        working-directory: _export
+        run: python validation/validate_compatibility_docs.py
+
       - name: Verify SHA-256 manifest (strict, canonical Git export)
         working-directory: _export
         run: python validation/verify_manifest.py --strict

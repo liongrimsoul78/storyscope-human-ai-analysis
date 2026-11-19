@@ -198,6 +198,7 @@ Etiquetas de decisión (clasificación documental, **no** enums de StoryScope):
 | M-52 | D | fila §3 | estado presente/opuesto/neutral | dimensión | observación de dimensión | `DimensionProfile` | `coverage_status=descriptive_assessed`; estado/dirección en informe | no se emite `EvidenceRecord` |
 | M-53 | D | `Presente–opuesto` | sin observación o sin justificación | dimensión | contraevidencia de dimensión no demostrada | — | — | cuarentena (`CE-009`/`CE-010`) |
 | M-54 | F | fila §4 | dos observaciones con spans separados | característica §4 | observaciones independientes | dos `EvidenceRecord` | `:obs:1`, `:obs:2` | sublocalizador determinista |
+| M-55 | X | ejecución | origen atestable durante la migración | ejecución | procedencia demostrable por atestación válida del operador | `EvidenceRecord` | conversión permitida; `observation_origin` refleja la atestación | atestación válida (§11.6) |
 
 ### 2.3 Tabla B — requisitos, pérdida y decisión
 
@@ -257,19 +258,20 @@ Etiquetas de decisión (clasificación documental, **no** enums de StoryScope):
 | M-52 | — | — | ruta D: estado de dimensión | no aplica | estado/dirección solo en informe | B | preservación sin conversión | contrato §8.1, §9.2 |
 | M-53 | — | — | `Presente–opuesto` de dimensión sin justificación | — | fila no convertida | D | conversión no segura | contrato §9.2; `CE-010` |
 | M-54 | dos spans separados | obligatorio | sublocalizador determinista | — | ninguna | A | conversión condicionada | contrato §11.2 |
+| M-55 | atestación válida | — | §11.6: atestación de migración permite la conversión | no aplica | ninguna | B | conversión condicionada | contrato §11.6 |
 
 ### 2.4 Recuento de decisiones
 
 | Decisión | Filas | Total |
 |---|---|---:|
 | conversión fiel | M-01, M-02, M-03, M-26, M-35, M-44, M-45 | 7 |
-| conversión condicionada | M-09, M-10, M-17, M-18, M-19, M-27, M-32, M-34, M-43, M-46, M-47, M-49, M-51, M-54 | 14 |
+| conversión condicionada | M-09, M-10, M-17, M-18, M-19, M-27, M-32, M-34, M-43, M-46, M-47, M-49, M-51, M-54, M-55 | 15 |
 | preservación sin conversión | M-13, M-14, M-15, M-16, M-22, M-23, M-24, M-25, M-28, M-33, M-52 | 11 |
 | conversión no segura | M-04, M-05, M-06, M-07, M-08, M-11, M-12, M-20, M-21, M-29, M-30, M-31, M-36, M-37, M-38, M-41, M-42, M-48, M-50, M-53 | 20 |
 | no evaluable con la evidencia disponible | M-39, M-40 | 2 |
-| **Total** | | **54** |
+| **Total** | | **55** |
 
-*Nota:* M-04 pasó de «conversión condicionada» (v0.1) a «conversión no segura» (v0.2) y se mantiene bloqueada en v0.3. M-08 se mantiene en cuarentena. M-13…M-16 se reclasificaron a preservación porque §3 no genera `EvidenceRecord`. M-43…M-54 son nuevas filas de la ruta F.
+*Nota:* M-04 pasó de «conversión condicionada» (v0.1) a «conversión no segura» (v0.2) y se mantiene bloqueada en v0.3. M-08 se mantiene en cuarentena. M-13…M-16 se reclasificaron a preservación porque §3 no genera `EvidenceRecord`. M-43…M-55 son nuevas filas de la ruta F.
 
 ---
 
