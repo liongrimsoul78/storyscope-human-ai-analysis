@@ -350,10 +350,141 @@ def m55_checks(
             "contract must state that M-55 does not itself generate EvidenceRecords",
         ),
         (
-            "migration_attestations" in matrix_text,
-            "matrix must document that M-55 relies on migration_attestations",
+            "attested_origin" in contract_text,
+            "contract must document attested_origin",
+        ),
+        (
+            "authorization_status" in contract_text,
+            "contract must document authorization_status",
+        ),
+        (
+            "Concordancia entre vías" in contract_text,
+            "contract must define concordance between the two provenance paths",
+        ),
+        (
+            "R-29a" in contract_text,
+            "contract must declare R-29a for contradicting provenance paths",
         ),
     ]
+    return checks
+
+
+ALLOWED_ATTESTED_ORIGINS = {
+    "human_annotation",
+    "external_model",
+    "independent_tool",
+    "authorized_experiment",
+}
+ATTESTATION_REQUIRED_FIELDS = [
+    "legacy_locator",
+    "legacy_sublocator",
+    "attested_origin",
+    "attested_by",
+    "attested_at_utc",
+    "basis",
+    "protocol_version",
+    "authorization_status",
+]
+
+
+def attestation_checks(
+    attestation: dict,
+    direct_origin: str | None,
+    contract_text: str,
+) -> list[tuple[bool, str]]:
+    """Validate one migration attestation against the documented rules."""
+    checks: list[tuple[bool, str]] = []
+
+    # Required fields must be present and non-empty.
+    for field_name in ATTESTATION_REQUIRED_FIELDS:
+        value = attestation.get(field_name)
+        checks.append(
+            (
+                value is not None and str(value).strip() != "",
+                f"attestation field {field_name!r} must be present and non-empty",
+            )
+        )
+
+    origin = attestation.get("attested_origin")
+    checks.append(
+        (
+            origin in ALLOWED_ATTESTED_ORIGINS,
+            f"attested_origin {origin!r} is outside the allowed vocabulary",
+        )
+    )
+
+    status = attestation.get("authorization_status")
+    checks.append(
+        (
+            status in {"authorized", "not_authorized", "not_applicable"},
+            f"authorization_status {status!r} is not a documented value",
+        )
+    )
+    # Only "authorized" enables M-55; "not_authorized" invalidates the entry.
+    # "not_applicable" has no documented criterion and stays pending.
+    checks.append(
+        (
+            status != "not_authorized",
+            "authorization_status=not_authorized invalidates the attestation",
+        )
+    )
+
+    # Concordance: direct declaration and attestation must agree when both exist.
+    if direct_origin is not None and attestation:
+        checks.append(
+            (
+                attestation.get("attested_origin") == direct_origin,
+                "direct legacy_observation_origin and attested_origin must agree",
+            )
+        )
+
+    # Contract must document the concordance rule and the attestation fields.
+    checks.append(
+        (
+            "Concordancia entre vías" in contract_text,
+            "contract must define concordance between the two provenance paths",
+        )
+    )
+    checks.append(
+        (
+            all(field_name in contract_text for field_name in ATTESTATION_REQUIRED_FIELDS),
+            "contract must document every migration_attestations field",
+        )
+    )
+    return checks
+
+
+def provenance_checks(
+    direct_origin: str | None,
+    attestation: dict,
+    contract_text: str,
+) -> list[tuple[bool, str]]:
+    """Apply R-29: at least one valid provenance path, with concordance."""
+    checks: list[tuple[bool, str]] = []
+    has_direct = direct_origin in ALLOWED_ATTESTED_ORIGINS
+    has_attestation = bool(attestation) and all(
+        attestation.get(f) not in (None, "") for f in ATTESTATION_REQUIRED_FIELDS
+    ) and attestation.get("attested_origin") in ALLOWED_ATTESTED_ORIGINS
+
+    checks.append(
+        (
+            has_direct or has_attestation,
+            "R-29: at least one valid provenance path is required",
+        )
+    )
+    if direct_origin is not None and attestation:
+        checks.append(
+            (
+                attestation.get("attested_origin") == direct_origin,
+                "R-29a: direct and attested origins must agree",
+            )
+        )
+    checks.append(
+        (
+            "R-29a" in contract_text,
+            "contract must declare R-29a for contradicting provenance paths",
+        )
+    )
     return checks
 
 
@@ -407,6 +538,16 @@ def main() -> int:
         contract["has_idempotency_key"],
         "contract does not state the (source_document_sha256, legacy_sublocator) key",
     )
+    for origin in ALLOWED_ATTESTED_ORIGINS:
+        report.check(
+            origin in contract_text,
+            f"contract must list attested_origin value {origin!r}",
+        )
+    for field_name in ATTESTATION_REQUIRED_FIELDS:
+        report.check(
+            field_name in contract_text,
+            f"contract must document attestation field {field_name!r}",
+        )
     report.check(
         "no existe registro convertido" in contract_text,
         "contract must define the — reversibility class",

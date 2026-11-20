@@ -26,7 +26,11 @@ DESIGN_DIR = ROOT / "docs" / "design" / "v0.3.0"
 
 sys.path.insert(0, str(VALIDATION_DIR))
 from validate_compatibility_docs import (  # noqa: E402
+    ALLOWED_ATTESTED_ORIGINS,
+    ATTESTATION_REQUIRED_FIELDS,
+    attestation_checks,
     m55_checks,
+    provenance_checks,
     reversibility_checks,
 )
 
@@ -127,7 +131,9 @@ class ReversibilitySingleReferenceTests(unittest.TestCase):
 class M55Tests(unittest.TestCase):
     CONTRACT = (
         "migration_attestations conserva la atestación externa. "
-        "M-55 no genera `EvidenceRecord` por sí misma."
+        "M-55 no genera `EvidenceRecord` por sí misma. "
+        "Concordancia entre vías. R-29a. attested_origin authorization_status "
+        + " ".join(ATTESTATION_REQUIRED_FIELDS)
     )
     MATRIX = "M-55 | atestación válida (`migration_attestations`)"
 
@@ -149,7 +155,7 @@ class M55Tests(unittest.TestCase):
         row.update(overrides)
         return row
 
-    def test_m55_with_valid_attestation_and_complete_records_passes(self) -> None:
+    def test_m55_documental_structure_passes(self) -> None:
         checks = m55_checks(
             self.row_a(), self.row_b(), self.CONTRACT, self.MATRIX
         )
@@ -195,6 +201,111 @@ class M55Tests(unittest.TestCase):
         messages = " ".join(failures(checks))
         self.assertIn("conditional conversion", messages)
         self.assertIn("reversibility B", messages)
+
+
+class ProvenancePathTests(unittest.TestCase):
+    """R-29: two provenance paths, with concordance."""
+
+    CONTRACT = (
+        "migration_attestations conserva la atestación externa. "
+        "M-55 no genera `EvidenceRecord` por sí misma. "
+        "Concordancia entre vías. R-29a. attested_origin authorization_status "
+        + " ".join(ATTESTATION_REQUIRED_FIELDS)
+    )
+
+    def valid_attestation(self, origin: str = "human_annotation") -> dict:
+        return {
+            "legacy_locator": "abc:§4:1:feature",
+            "legacy_sublocator": "abc:§4:1:feature:obs:1",
+            "attested_origin": origin,
+            "attested_by": "op-1",
+            "attested_at_utc": "2026-11-19T00:00:00Z",
+            "basis": "fundamento",
+            "protocol_version": "0.2.3",
+            "authorization_status": "authorized",
+        }
+
+    def test_direct_declaration_without_attestation_passes(self) -> None:
+        checks = provenance_checks("human_annotation", {}, self.CONTRACT)
+        self.assertEqual(failures(checks), [])
+
+    def test_absent_declaration_with_valid_attestation_passes(self) -> None:
+        checks = provenance_checks(None, self.valid_attestation(), self.CONTRACT)
+        self.assertEqual(failures(checks), [])
+
+    def test_absent_declaration_and_absent_attestation_fails_r29(self) -> None:
+        checks = provenance_checks(None, {}, self.CONTRACT)
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_contradicting_direct_and_attested_origins_fails_r29a(self) -> None:
+        checks = provenance_checks(
+            "human_annotation", self.valid_attestation("external_model"), self.CONTRACT
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29a", messages)
+
+
+class AttestationValidityTests(unittest.TestCase):
+    """Validity of a migration attestation entry."""
+
+    CONTRACT = (
+        "migration_attestations conserva la atestación externa. "
+        "M-55 no genera `EvidenceRecord` por sí misma. "
+        "Concordancia entre vías. R-29a. attested_origin authorization_status "
+        + " ".join(ATTESTATION_REQUIRED_FIELDS)
+    )
+
+    def base(self, **overrides: str) -> dict:
+        entry = {
+            "legacy_locator": "abc:§4:1:feature",
+            "legacy_sublocator": "abc:§4:1:feature:obs:1",
+            "attested_origin": "human_annotation",
+            "attested_by": "op-1",
+            "attested_at_utc": "2026-11-19T00:00:00Z",
+            "basis": "fundamento",
+            "protocol_version": "0.2.3",
+            "authorization_status": "authorized",
+        }
+        entry.update(overrides)
+        return entry
+
+    def test_attested_origin_outside_vocabulary_fails(self) -> None:
+        checks = attestation_checks(
+            self.base(attested_origin="invented_origin"), None, self.CONTRACT
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("outside the allowed vocabulary", messages)
+
+    def test_missing_required_field_fails(self) -> None:
+        entry = self.base()
+        del entry["basis"]
+        checks = attestation_checks(entry, None, self.CONTRACT)
+        messages = " ".join(failures(checks))
+        self.assertIn("basis", messages)
+
+    def test_not_authorized_status_fails(self) -> None:
+        checks = attestation_checks(
+            self.base(authorization_status="not_authorized"), None, self.CONTRACT
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("not_authorized", messages)
+
+    def test_valid_attestation_passes(self) -> None:
+        checks = attestation_checks(self.base(), None, self.CONTRACT)
+        self.assertEqual(failures(checks), [])
+
+    def test_not_applicable_status_is_pending_not_failure(self) -> None:
+        # "not_applicable" has no documented criterion: it must not be treated
+        # as an automatic failure, but it does not enable M-55.
+        checks = attestation_checks(
+            self.base(authorization_status="not_applicable"), None, self.CONTRACT
+        )
+        # All documented-value checks pass; only the enabling condition differs.
+        self.assertTrue(
+            all(condition for condition, _ in checks),
+            failures(checks),
+        )
 
 
 class ValidatorIntegrationTests(unittest.TestCase):

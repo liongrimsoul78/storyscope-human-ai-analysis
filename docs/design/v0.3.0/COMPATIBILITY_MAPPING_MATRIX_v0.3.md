@@ -258,7 +258,7 @@ Etiquetas de decisión (clasificación documental, **no** enums de StoryScope):
 | M-52 | — | — | ruta D: estado de dimensión | no aplica | estado/dirección solo en informe | B | preservación sin conversión | contrato §8.1, §9.2 |
 | M-53 | — | — | `Presente–opuesto` de dimensión sin justificación | — | fila no convertida | D | conversión no segura | contrato §9.2; `CE-010` |
 | M-54 | dos spans separados | obligatorio | sublocalizador determinista | — | ninguna | A | conversión condicionada | contrato §11.2 |
-| M-55 | atestación válida (`migration_attestations`) | — | §11.6: atestación de migración permite la conversión | no aplica | ninguna | B | conversión condicionada | contrato §11.6 |
+| M-55 | atestación válida (`migration_attestations`): localizadores coincidentes, `attested_origin` en vocabulario, campos obligatorios presentes, `authorization_status=authorized` | — | §11.6: atestación de migración permite la conversión | no aplica | ninguna | B | conversión condicionada | contrato §11.6 |
 
 ### 2.4 Recuento de decisiones
 

@@ -142,7 +142,8 @@ Por tanto, el exportador consume una **proyección documental** de ese informe. 
 | `adequacy_gate` (`no apto` / `exploratorio` / `perfil cualitativo posible`) | §1 | sí | `AnalysisRun.adequacy` (sujeto a §17-B2) |
 | `global_label` (`patrón humano` / `patrón IA` / `mixto` / `neutro` / `evidencia insuficiente`) | §6 | sí | nivel de ejecución; ver R-20/R-21 y §17-B1 |
 | `analysis_quality_confidence` (`baja` / `moderada` / `alta`) | §6 | no | **no** se propaga a registros; ver R-23 y §15.3 |
-| `legacy_observation_origin` (`human_annotation` / `external_model` / `independent_tool` / `authorized_experiment`) | **no existe en `v0.2.3`** | sí, declarado por el operador | `EvidenceRecord.observation_origin` |
+| `legacy_observation_origin` (`human_annotation` / `external_model` / `independent_tool` / `authorized_experiment`) | **no existe en `v0.2.3`** | sí, por **una de dos vías**: declaración explícita del operador (este campo) o atestación de migración válida (§11.6, M-55) | `EvidenceRecord.observation_origin` |
+| `migration_attestations` | informe externo (§11.6) | condicional: obligatorio si la procedencia se aporta por atestación; prohibido inferirlo | informe de exportación; fuente de verdad de la atestación |
 | `source_text` disponible para verificación de citas | implícito en el análisis | sí | cálculo de `source_spans` |
 | `source_document_sha256`, `source_git_tag`, `source_git_commit` | cálculo del exportador | sí | sobre de exportación |
 | `feature_registry_version` | `AnalysisRun` de destino | sí | resolución A2 |
@@ -184,7 +185,10 @@ Por tanto, el exportador consume una **proyección documental** de ese informe. 
 Una ejecución solo puede iniciarse si se cumplen **todos**:
 
 1. `feature_registry_version` está fijada y la versión existe y es resoluble (§5.7, `INV-A2-16`).
-2. `legacy_observation_origin` está declarado explícitamente. `v0.2.3` no lo registra; el exportador no puede inferirlo.
+2. `legacy_observation_origin` **o** una atestación de migración válida. `v0.2.3` no registra `observation_origin`; el exportador no puede inferirlo. Se admiten dos vías, mutuamente verificables:
+   - **Vía directa:** el operador declara `legacy_observation_origin` con uno de los cuatro valores permitidos.
+   - **Vía atestada:** existe al menos una entrada válida en `migration_attestations` con `attested_origin` igual a uno de los cuatro valores permitidos (M-55).
+   Si coexisten ambas, sus valores deben coincidir; una discrepancia es rechazo, no se resuelve silenciosamente. Si ninguna vía aporta procedencia válida, la ejecución se rechaza (R-29/R-37, `CE-032`/`CE-036`).
 3. El texto analizado está disponible para verificar citas (§5.4). Sin texto no hay `source_spans` verificables y, por la regla 5 de §5.3, no hay `observed` válido.
 4. El documento fuente tiene digest SHA-256 calculado.
 5. **Para cada fila §3:** declara `legacy_state`. Una fila §3 sin estado no es una anotación (`evidence-status.md`: «No se puede asignar dirección a un rasgo hasta registrar su estado»).
@@ -441,7 +445,8 @@ Cada fila produce **exactamente un** resultado: `converted`, `converted_with_fla
 
 | ID | Condición | Acción | Destino | Diagnóstico |
 |---|---|---|---|---|
-| R-29 | falta `legacy_observation_origin` | rechazar ejecución | — | `CE-032` |
+| R-29 | procedencia ausente: ni declaración directa válida ni atestación válida (M-55) | rechazar ejecución | — | `CE-032` |
+| R-29a | declaración directa y atestación válidas pero con valores distintos | rechazar ejecución | — | `CE-032` |
 | R-34 | `feature_registry_version` inexistente o no resoluble | rechazar ejecución | — | `CE-005` |
 | R-30e | falta texto fuente o digest | rechazar ejecución | — | `CE-033`/`CE-024` |
 | R-20 | etiqueta global `mixto` | preservar en informe externo; **no** escribir en `ClusterSummary.alignment` por defecto | `run_level.legacy_global_label` | `CE-015` |
@@ -449,6 +454,8 @@ Cada fila produce **exactamente un** resultado: `converted`, `converted_with_fla
 | R-22 | `adequacy_gate` | preservar | `run_level` | — |
 | R-23 | `analysis_quality_confidence` | preservar | `run_level`; **no** copiar a `assessment_confidence` | — |
 | R-37 | procedencia histórica no demostrable ni atestable | rechazar fila/ejecución según alcance | — | `CE-036` |
+
+**Precisión sobre R-29 y M-55.** R-29 no exige un campo literal `legacy_observation_origin` cuando la procedencia se aporta por atestación. Las dos vías son equivalentes y excluyentes en valor: una declaración directa válida o una atestación válida satisfacen el requisito; ambas juntas solo si coinciden. M-55 (ruta X) es la condición de procedencia a nivel de ejecución que habilita el establecimiento de `observation_origin` a partir de una atestación válida; no genera `EvidenceRecord` por sí misma y no sustituye la fuente de verdad, que sigue siendo `migration_attestations`.
 
 ### 9.2 Ruta D — reglas de dimensión (§3)
 
@@ -712,6 +719,23 @@ El `origin_detail` de cada `EvidenceRecord` **puede** incluir la clave `legacy_l
 
 No se crean nuevos enums en el dominio. La atestación es un mecanismo de procesamiento externo con su propia procedencia, coherente con la cuarentena (§14).
 
+**Validez de la atestación.** Una entrada de `migration_attestations` es válida solo si cumple todos los siguientes:
+
+| Campo | Condición |
+|---|---|
+| `legacy_locator` | no vacío y coincidente con el localizador compuesto de la observación migrada (§11.2) |
+| `legacy_sublocator` | no vacío y coincidente con el sublocalizador de la observación migrada |
+| `attested_origin` | uno de `human_annotation`, `external_model`, `independent_tool`, `authorized_experiment` |
+| `attested_by` | identificador seudonimizado no vacío |
+| `attested_at_utc` | fecha/hora ISO 8601 en UTC |
+| `basis` | fundamento textual no vacío |
+| `protocol_version` | versión no vacía |
+| `authorization_status` | `authorized` para habilitar M-55; `not_authorized` invalida la entrada; `not_applicable` carece de criterio documentado y se conserva como decisión pendiente (no se infiere autorización) |
+
+`migration_attestations` es la fuente externa de verdad de la atestación. El dominio solo refleja `attested_origin` en `EvidenceRecord.observation_origin`; no lo sustituye.
+
+**Concordancia entre vías.** Si coexisten declaración directa y atestación válida, sus valores de procedencia deben coincidir. Una discrepancia no se resuelve silenciosamente: se rechaza la ejecución (`CE-032`). Si solo una vía está presente y es válida, se acepta. Si ninguna está presente o es válida, se rechaza (R-29/R-37).
+
 **M-55 no genera `EvidenceRecord` por sí misma.** Es una condición de procedencia **a nivel de ejecución**: habilita el establecimiento de `EvidenceRecord.observation_origin` en las filas completas que ya cumplen los demás requisitos (estado, valor explícito, span, versión de Registry). `migration_attestations` conserva la atestación externa y sigue siendo su fuente de verdad; el dominio solo refleja el valor, no lo sustituye. Sin atestación válida, M-55 no habilita la conversión y se aplican R-29/R-37 (`CE-032`/`CE-036`).
 
 ---
@@ -831,7 +855,7 @@ Los diagnósticos viven **solo** en `compatibility_export_report.json`. No se es
 | `CE-029` | fila de dimensión sin característica | preservar |
 | `CE-030` | `ambivalent/mixed` leído como dirección `mixto` | corregir; informativo |
 | `CE-031` | cita no literal | cuarentena |
-| `CE-032` | `legacy_observation_origin` no declarado | rechazar ejecución |
+| `CE-032` | procedencia ausente: ni declaración directa válida ni atestación válida (o discrepancia entre ambas) | rechazar ejecución |
 | `CE-033` | texto fuente no disponible | rechazar ejecución |
 | `CE-034` | asimetría de oportunidad | revisión manual |
 | `CE-035` | `Presente–opuesto` en bidireccional no resoluble sin asumir referencia AI-first | cuarentena |
