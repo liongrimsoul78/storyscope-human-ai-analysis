@@ -403,12 +403,8 @@ def _is_utc_iso8601(value: object) -> bool:
     return parsed.utcoffset() == timedelta(0)
 
 
-def attestation_is_valid(
-    attestation: dict,
-    expected_locator: str | None = None,
-    expected_sublocator: str | None = None,
-) -> bool:
-    """Single source of truth for attestation validity (used by R-29/M-55)."""
+def attestation_is_structurally_valid(attestation: dict) -> bool:
+    """Structural validity of a migration attestation entry (no correspondence)."""
     if not isinstance(attestation, dict) or not attestation:
         return False
     for field_name in ATTESTATION_REQUIRED_FIELDS:
@@ -420,50 +416,37 @@ def attestation_is_valid(
     if attestation.get("authorization_status") != "authorized":
         return False
     if not _is_utc_iso8601(attestation.get("attested_at_utc")):
-        return False
-    if expected_locator is not None and attestation.get("legacy_locator") != expected_locator:
-        return False
-    if expected_sublocator is not None and attestation.get("legacy_sublocator") != expected_sublocator:
         return False
     return True
 
 
-def _is_utc_iso8601(value: object) -> bool:
-    if not isinstance(value, str) or value.strip() == "":
-        return False
-    text = value.strip()
-    if text.endswith("Z") or text.endswith("z"):
-        text = text[:-1] + "+00:00"
-    try:
-        parsed = datetime.fromisoformat(text)
-    except ValueError:
-        return False
-    if parsed.tzinfo is None:
-        return False
-    return parsed.utcoffset() == timedelta(0)
+_UNSET = object()
 
 
 def attestation_is_valid(
     attestation: dict,
-    expected_locator: str | None = None,
-    expected_sublocator: str | None = None,
+    expected_locator=_UNSET,
+    expected_sublocator=_UNSET,
 ) -> bool:
-    """Single source of truth for attestation validity (used by R-29/M-55)."""
-    if not isinstance(attestation, dict) or not attestation:
+    """Single source of truth for attestation validity (used by R-29/M-55).
+
+    Structural validity is always required. When expected locators are supplied,
+    exact correspondence with both of them is also required.
+    """
+    if not attestation_is_structurally_valid(attestation):
         return False
-    for field_name in ATTESTATION_REQUIRED_FIELDS:
-        value = attestation.get(field_name)
-        if value is None or str(value).strip() == "":
-            return False
-    if attestation.get("attested_origin") not in ALLOWED_ATTESTED_ORIGINS:
+    if expected_locator is _UNSET and expected_sublocator is _UNSET:
+        return True
+    # Explicit (possibly None) locators: absence fails closed.
+    if expected_locator is _UNSET:
+        expected_locator = None
+    if expected_sublocator is _UNSET:
+        expected_sublocator = None
+    if expected_locator is None or expected_sublocator is None:
         return False
-    if attestation.get("authorization_status") != "authorized":
+    if attestation.get("legacy_locator") != expected_locator:
         return False
-    if not _is_utc_iso8601(attestation.get("attested_at_utc")):
-        return False
-    if expected_locator is not None and attestation.get("legacy_locator") != expected_locator:
-        return False
-    if expected_sublocator is not None and attestation.get("legacy_sublocator") != expected_sublocator:
+    if attestation.get("legacy_sublocator") != expected_sublocator:
         return False
     return True
 
@@ -569,7 +552,17 @@ def provenance_checks(
     expected_locator: str | None = None,
     expected_sublocator: str | None = None,
 ) -> list[tuple[bool, str]]:
-    """Apply R-29/R-29a using a single validity rule for attestations."""
+    """Apply R-29/R-29a using a single validity rule for attestations.
+
+    A migration attestation only authorizes the observation whose two expected
+    locators are both known and match exactly. When either expected locator is
+    missing, the attested path fails closed (no attestation can authorize).
+
+    Conflicts are detected between all valid provenance assertions applicable
+    to the same observation: direct declaration versus attestation, and
+    attestation versus another attestation. Invalid or pending attestations never
+    participate and never substitute a valid one.
+    """
     if isinstance(attestations, dict):
         attestations = [attestations] if attestations else []
     attestations = attestations or []
@@ -577,9 +570,11 @@ def provenance_checks(
     checks: list[tuple[bool, str]] = []
     has_direct = direct_origin in ALLOWED_ATTESTED_ORIGINS
 
+    locators_known = expected_locator is not None and expected_sublocator is not None
     valid_matching = [
         a for a in attestations
-        if attestation_is_valid(a, expected_locator, expected_sublocator)
+        if locators_known
+        and attestation_is_valid(a, expected_locator, expected_sublocator)
     ]
 
     checks.append(
@@ -589,7 +584,20 @@ def provenance_checks(
         )
     )
 
-    if has_direct and valid_matching:
+    assertion_origins: list[str] = []
+    if has_direct:
+        assertion_origins.append(direct_origin)  # type: ignore[arg-type]
+    for attestation in valid_matching:
+        assertion_origins.append(attestation.get("attested_origin"))
+
+    if len(set(assertion_origins)) > 1:
+        checks.append(
+            (
+                False,
+                "R-29a: conflicting provenance assertions for the same observation",
+            )
+        )
+    elif has_direct and valid_matching:
         checks.append(
             (
                 all(a.get("attested_origin") == direct_origin for a in valid_matching),

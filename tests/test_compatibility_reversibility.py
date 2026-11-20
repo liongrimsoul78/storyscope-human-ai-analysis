@@ -231,7 +231,12 @@ class ProvenancePathTests(unittest.TestCase):
         self.assertEqual(failures(checks), [])
 
     def test_absent_declaration_with_valid_attestation_passes(self) -> None:
-        checks = provenance_checks(None, self.valid_attestation(), self.CONTRACT)
+        att = self.valid_attestation()
+        checks = provenance_checks(
+            None, att, self.CONTRACT,
+            expected_locator=att["legacy_locator"],
+            expected_sublocator=att["legacy_sublocator"],
+        )
         self.assertEqual(failures(checks), [])
 
     def test_absent_declaration_and_absent_attestation_fails_r29(self) -> None:
@@ -240,8 +245,11 @@ class ProvenancePathTests(unittest.TestCase):
         self.assertIn("R-29", messages)
 
     def test_contradicting_direct_and_attested_origins_fails_r29a(self) -> None:
+        att = self.valid_attestation("external_model")
         checks = provenance_checks(
-            "human_annotation", self.valid_attestation("external_model"), self.CONTRACT
+            "human_annotation", att, self.CONTRACT,
+            expected_locator=att["legacy_locator"],
+            expected_sublocator=att["legacy_sublocator"],
         )
         messages = " ".join(failures(checks))
         self.assertIn("R-29a", messages)
@@ -494,6 +502,190 @@ class ValidatorIntegrationTests(unittest.TestCase):
         result = self.run_validator()
         self.assertEqual(result.returncode, 1, result.stdout)
         self.assertIn("valid migration attestation", result.stdout)
+
+
+class Phase1226AttestationTests(unittest.TestCase):
+    """Adversarial coverage for FASE 1.22.6 attestation correspondence/conflicts."""
+
+    CONTRACT = (
+        "migration_attestations conserva la atestación externa. "
+        "M-55 no genera `EvidenceRecord` por sí misma. "
+        "Concordancia entre vías. R-29a. attested_origin authorization_status "
+        "ISO 8601 UTC " + " ".join(ATTESTATION_REQUIRED_FIELDS)
+    )
+
+    def base(self, **overrides: str) -> dict:
+        entry = {
+            "legacy_locator": "loc-A",
+            "legacy_sublocator": "sub-A",
+            "attested_origin": "human_annotation",
+            "attested_by": "op-1",
+            "attested_at_utc": "2026-11-19T00:00:00Z",
+            "basis": "fundamento",
+            "protocol_version": "0.2.3",
+            "authorization_status": "authorized",
+        }
+        entry.update(overrides)
+        return entry
+
+    def test_01_authorized_with_both_expected_locators_passes(self) -> None:
+        att = self.base()
+        self.assertTrue(attestation_is_valid(att, "loc-A", "sub-A"))
+        checks = provenance_checks(
+            None, [att], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        self.assertEqual(failures(checks), [])
+
+    def test_02_without_expected_locator_does_not_enable_r29(self) -> None:
+        att = self.base()
+        checks = provenance_checks(
+            None, [att], self.CONTRACT,
+            expected_locator=None, expected_sublocator="sub-A",
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_03_without_expected_sublocator_does_not_enable_r29(self) -> None:
+        att = self.base()
+        checks = provenance_checks(
+            None, [att], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator=None,
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_04_incorrect_locator_does_not_enable_r29(self) -> None:
+        att = self.base()
+        self.assertFalse(attestation_is_valid(att, "loc-X", "sub-A"))
+        checks = provenance_checks(
+            None, [att], self.CONTRACT,
+            expected_locator="loc-X", expected_sublocator="sub-A",
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_05_incorrect_sublocator_does_not_enable_r29(self) -> None:
+        att = self.base()
+        self.assertFalse(attestation_is_valid(att, "loc-A", "sub-X"))
+        checks = provenance_checks(
+            None, [att], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-X",
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_06_direct_valid_without_attestation_passes(self) -> None:
+        checks = provenance_checks("human_annotation", [], self.CONTRACT)
+        self.assertEqual(failures(checks), [])
+
+    def test_07_two_attestations_different_observations(self) -> None:
+        att_a = self.base()
+        att_b = self.base(
+            legacy_locator="loc-B", legacy_sublocator="sub-B",
+            attested_origin="external_model",
+        )
+        checks_a = provenance_checks(
+            None, [att_a, att_b], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        checks_b = provenance_checks(
+            None, [att_a, att_b], self.CONTRACT,
+            expected_locator="loc-B", expected_sublocator="sub-B",
+        )
+        self.assertEqual(failures(checks_a), [])
+        self.assertEqual(failures(checks_b), [])
+
+    def test_08_two_attestations_same_observation_same_origin(self) -> None:
+        att1 = self.base()
+        att2 = self.base(attested_by="op-2")
+        checks = provenance_checks(
+            None, [att1, att2], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        self.assertEqual(failures(checks), [])
+
+    def test_09_two_attestations_same_observation_different_origin_conflict(self) -> None:
+        att1 = self.base()
+        att2 = self.base(attested_origin="external_model")
+        checks = provenance_checks(
+            None, [att1, att2], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29a", messages)
+        self.assertIn("conflict", messages.lower())
+
+    def test_10_direct_valid_with_coincident_attestations_passes(self) -> None:
+        att1 = self.base()
+        att2 = self.base(attested_by="op-2")
+        checks = provenance_checks(
+            "human_annotation", [att1, att2], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        self.assertEqual(failures(checks), [])
+
+    def test_11_direct_valid_with_contradictory_attestation_r29a(self) -> None:
+        att = self.base(attested_origin="external_model")
+        checks = provenance_checks(
+            "human_annotation", [att], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29a", messages)
+
+    def test_12_invalid_attestation_does_not_substitute_valid(self) -> None:
+        valid = self.base()
+        invalid = self.base(authorization_status="not_authorized", attested_origin="external_model")
+        checks = provenance_checks(
+            None, [valid, invalid], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        self.assertEqual(failures(checks), [])
+
+    def test_13_each_required_field_absent(self) -> None:
+        for field_name in ATTESTATION_REQUIRED_FIELDS:
+            entry = self.base()
+            del entry[field_name]
+            checks = attestation_checks(entry, None, self.CONTRACT)
+            messages = " ".join(failures(checks))
+            self.assertIn(field_name, messages, field_name)
+
+    def test_14_each_required_field_spaces_only(self) -> None:
+        for field_name in ATTESTATION_REQUIRED_FIELDS:
+            entry = self.base(**{field_name: "   "})
+            checks = attestation_checks(entry, None, self.CONTRACT)
+            messages = " ".join(failures(checks))
+            self.assertIn(field_name, messages, field_name)
+
+    def test_15_not_authorized_cannot_enable_r29(self) -> None:
+        att = self.base(authorization_status="not_authorized")
+        self.assertFalse(attestation_is_valid(att))
+        checks = provenance_checks(
+            None, [att], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_16_not_applicable_cannot_enable_m55_by_itself(self) -> None:
+        att = self.base(authorization_status="not_applicable")
+        self.assertFalse(attestation_is_valid(att))
+        checks = provenance_checks(
+            None, [att], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_17_not_applicable_with_direct_valid(self) -> None:
+        att = self.base(authorization_status="not_applicable")
+        checks = provenance_checks(
+            "human_annotation", [att], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        self.assertEqual(failures(checks), [])
+
 
 
 if __name__ == "__main__":

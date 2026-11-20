@@ -187,7 +187,7 @@ Una ejecución solo puede iniciarse si se cumplen **todos**:
 1. `feature_registry_version` está fijada y la versión existe y es resoluble (§5.7, `INV-A2-16`).
 2. `legacy_observation_origin` **o** una atestación de migración válida. `v0.2.3` no registra `observation_origin`; el exportador no puede inferirlo. Se admiten dos vías, mutuamente verificables:
    - **Vía directa:** el operador declara `legacy_observation_origin` con uno de los cuatro valores permitidos.
-   - **Vía atestada:** existe al menos una entrada válida en `migration_attestations` con `attested_origin` igual a uno de los cuatro valores permitidos (M-55).
+   - **Vía atestada:** existe al menos una entrada válida en `migration_attestations`, correspondiente a la observación evaluada por igualdad exacta de `legacy_locator` y `legacy_sublocator`, con `attested_origin` igual a uno de los cuatro valores permitidos (M-55).
    Si coexisten ambas, sus valores deben coincidir; una discrepancia es rechazo, no se resuelve silenciosamente. Si ninguna vía aporta procedencia válida, la ejecución se rechaza (R-29/R-37, `CE-032`/`CE-036`).
 3. El texto analizado está disponible para verificar citas (§5.4). Sin texto no hay `source_spans` verificables y, por la regla 5 de §5.3, no hay `observed` válido.
 4. El documento fuente tiene digest SHA-256 calculado.
@@ -446,7 +446,7 @@ Cada fila produce **exactamente un** resultado: `converted`, `converted_with_fla
 | ID | Condición | Acción | Destino | Diagnóstico |
 |---|---|---|---|---|
 | R-29 | procedencia ausente: ni declaración directa válida ni atestación válida (M-55) | rechazar ejecución | — | `CE-032` |
-| R-29a | declaración directa y atestación válidas pero con valores distintos | rechazar ejecución | — | `CE-032` |
+| R-29a | dos o más afirmaciones de procedencia válidas aplicables a la misma observación con valores distintos (declaración directa frente a atestación, o atestación frente a otra atestación) | rechazar ejecución | — | `CE-032` |
 | R-34 | `feature_registry_version` inexistente o no resoluble | rechazar ejecución | — | `CE-005` |
 | R-30e | falta texto fuente o digest | rechazar ejecución | — | `CE-033`/`CE-024` |
 | R-20 | etiqueta global `mixto` | preservar en informe externo; **no** escribir en `ClusterSummary.alignment` por defecto | `run_level.legacy_global_label` | `CE-015` |
@@ -456,6 +456,8 @@ Cada fila produce **exactamente un** resultado: `converted`, `converted_with_fla
 | R-37 | procedencia histórica no demostrable ni atestable | rechazar fila/ejecución según alcance | — | `CE-036` |
 
 **Precisión sobre R-29 y M-55.** R-29 no exige un campo literal `legacy_observation_origin` cuando la procedencia se aporta por atestación. Las dos vías son equivalentes y excluyentes en valor: una declaración directa válida o una atestación válida satisfacen el requisito; ambas juntas solo si coinciden. M-55 (ruta X) es la condición de procedencia a nivel de ejecución que habilita el establecimiento de `observation_origin` a partir de una atestación válida; no genera `EvidenceRecord` por sí misma y no sustituye la fuente de verdad, que sigue siendo `migration_attestations`.
+
+**Precisión sobre R-29a y atestaciones múltiples.** R-29a se aplica a cualesquiera dos o más afirmaciones de procedencia válidas aplicables a la misma observación: declaración directa frente a atestación, y atestación frente a otra atestación de la misma observación. Si difieren en `attested_origin`/`legacy_observation_origin`, se rechaza la ejecución (`CE-032`); no se elige por orden de aparición ni se sustituye una entrada por otra. Las atestaciones válidas correspondientes a observaciones distintas no se confrontan entre sí y conservan su ámbito de autorización. Las atestaciones inválidas o pendientes (`not_authorized`, `not_applicable`, campos ausentes o no correspondientes) no participan en el conflicto ni sustituyen a las válidas.
 
 ### 9.2 Ruta D — reglas de dimensión (§3)
 
@@ -744,6 +746,14 @@ No se crean nuevos enums en el dominio. La atestación es un mecanismo de proces
 4. Si una atestación apunta a otra observación, no habilita la actual: se ignora para R-29 de esta observación (no se produce autorización cruzada).
 5. Si existen varias atestaciones en la misma ejecución, cada una solo autoriza la observación cuyos localizadores coinciden.
 6. Una atestación válida correspondiente a una fila no autoriza automáticamente otras filas, aunque compartan contenido.
+
+**Validez estructural frente a autorización efectiva.** Se distinguen dos conceptos:
+1. *Validez estructural*: la entrada cumple todos los campos obligatorios, `attested_origin` permitido, `authorization_status=authorized` y fecha ISO 8601 en UTC. No depende de la observación evaluada.
+2. *Autorización efectiva*: la entrada es estructuralmente válida **y** sus `legacy_locator` y `legacy_sublocator` coinciden exactamente con los localizadores esperados de la observación evaluada. Si falta cualquiera de los localizadores esperados, la vía atestada falla de forma cerrada para esa observación.
+
+**Conflictos entre atestaciones.** Varias afirmaciones de procedencia válidas aplicables a la misma observación deben declarar el mismo valor. Un conflicto (directa frente a atestación, o atestación frente a otra atestación de la misma observación) se rechaza explícitamente (`CE-032`, R-29a); no se aplica prioridad por orden ni se sustituye una entrada por otra. Las atestaciones de observaciones distintas no se confrontan. Las atestaciones inválidas o pendientes no generan conflicto ni sustituyen a las válidas.
+
+**Tratamiento de `not_applicable`.** `not_applicable` carece de criterio documentado: la entrada se conserva como decisión pendiente, no habilita M-55 por sí sola y no genera conflicto. Si coexiste con una vía directa válida, la vía directa sigue siendo válida y la atestación continúa pendiente.
 
 M-55 sigue siendo condición run-level; la autorización efectiva de procedencia se evalúa por observación. No se convierte en fila de característica ni genera `EvidenceRecord`.
 
