@@ -503,7 +503,7 @@ Los vectores TV-01 a TV-34 se conservan desde `COMPATIBILITY_TEST_VECTORS_v0.1.m
 | Tipo de característica | ejecución |
 | Evidencia y localización | — |
 | Versión del Registry | `0.1.2-draft` |
-| Resultado esperado | conversión permitida; `observation_origin` refleja la atestación; `migration_attestations` registra responsable, fecha, fundamento, versión de protocolo y autorización; `origin_detail` puede referenciar la atestación |
+| Resultado esperado | conversión permitida de las filas completas; `observation_origin` refleja la atestación; `migration_attestations` registra responsable, fecha, fundamento, versión de protocolo y autorización; `origin_detail` puede referenciar la atestación; M-55 no emite `EvidenceRecord` por sí misma |
 | Justificación | §11.6: atestación de migración es mecanismo externo con su propia procedencia |
 | Pérdida esperada | ninguna |
 | Reversibilidad | B |

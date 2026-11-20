@@ -11,7 +11,9 @@ the identifiers and vocabularies they share:
 * vector identifiers across the preserved v0.1/v0.2 chain and the v0.3 set;
 * coverage: every one of the 70 vectors appears in the coverage table;
 * the specific v0.3 decisions (R-04 blocked, TV-03 quarantine, TV-56 route F+,
-  no not_observed from a §3 dimension row).
+  no not_observed from a §3 dimension row, reversibility backed by the matrix
+  rows for single and multi-reference vectors, and M-55 as a run-level
+  provenance condition that does not emit records by itself).
 
 Standard library only. Exit code 0 means PASS.
 """
@@ -182,6 +184,179 @@ def parse_vectors(path: Path) -> dict[str, dict]:
     return vectors
 
 
+REVERSIBILITY_CLASSES = {"A", "B", "C", "D", "—"}
+
+
+def _components(value: str) -> set[str]:
+    return {part.strip() for part in value.split("/") if part.strip()}
+
+
+def reversibility_checks(
+    vid: str,
+    vrev: str,
+    mats: list[str],
+    mrevs: list[str],
+    result: str,
+) -> list[tuple[bool, str]]:
+    """Return the (condition, message) checks for one vector.
+
+    The function is pure so the adversarial tests can exercise the same logic
+    the validator runs, without touching the repository documents.
+    """
+    checks: list[tuple[bool, str]] = []
+    vector_components = _components(vrev)
+    matrix_components: set[str] = set()
+    for mrev in mrevs:
+        matrix_components |= _components(mrev)
+
+    # Correspondence: a converted result cannot coexist with —, and vice versa.
+    converted_result = (
+        "`observed`" in result
+        and "quarantined" not in result
+        and "rejected" not in result
+        and "rechazo" not in result
+    )
+    if vrev == "—":
+        checks.append(
+            (
+                "quarantined" in result
+                or "rejected" in result
+                or "rechazo" in result,
+                f"{vid}: reversibility — requires a quarantined/rejected result",
+            )
+        )
+    if converted_result:
+        checks.append(
+            (vrev != "—", f"{vid}: a converted result cannot have reversibility —")
+        )
+
+    # — means "no converted record exists": it cannot be combined with a class
+    # that presupposes one.
+    if "—" in vector_components and len(vector_components) > 1:
+        checks.append(
+            (
+                False,
+                f"{vid}: reversibility — cannot be combined with other classes",
+            )
+        )
+
+    if len(mats) == 1:
+        matrix_reversibility = mrevs[0]
+        matrix_single = _components(matrix_reversibility)
+        if "/" in matrix_reversibility:
+            # Composite matrix row: the vector may declare one of its
+            # components, but never an unsupported one.
+            checks.append(
+                (
+                    vector_components <= matrix_single,
+                    f"{vid}: reversibility {vrev!r} is not a sub-case of "
+                    f"{mats[0]} ({matrix_reversibility!r})",
+                )
+            )
+        else:
+            checks.append(
+                (
+                    vrev == matrix_reversibility,
+                    f"{vid}: reversibility {vrev!r} disagrees with "
+                    f"{mats[0]} ({matrix_reversibility!r})",
+                )
+            )
+    else:
+        # Multi-reference vectors are compared component by component against
+        # the union of the referenced rows. No component is exempt: in
+        # particular, — must be backed by at least one referenced row.
+        for component in sorted(vector_components):
+            checks.append(
+                (
+                    component in matrix_components,
+                    f"{vid}: reversibility component {component!r} is not "
+                    f"supported by its matrix rows {mats}",
+                )
+            )
+        if "—" in vector_components:
+            checks.append(
+                (
+                    "—" in matrix_components,
+                    f"{vid}: reversibility — is not backed by any referenced "
+                    f"matrix row {mats}",
+                )
+            )
+        # A composite vector cannot claim more distinct classes than its
+        # referenced rows provide.
+        checks.append(
+            (
+                len(vector_components) <= len(matrix_components),
+                f"{vid}: reversibility {vrev!r} claims more classes than its "
+                f"matrix rows {mats} provide ({sorted(matrix_components)})",
+            )
+        )
+
+    # If every referenced row is —, the vector cannot claim a converted class.
+    if matrix_components == {"—"}:
+        checks.append(
+            (
+                vrev == "—",
+                f"{vid}: keeps reversibility {vrev!r} while its matrix rows are —",
+            )
+        )
+    return checks
+
+
+def m55_checks(
+    row_a: dict,
+    row_b: dict,
+    contract_text: str,
+    matrix_text: str,
+) -> list[tuple[bool, str]]:
+    """Return the checks that pin down the M-55 run-level provenance semantics."""
+    checks: list[tuple[bool, str]] = [
+        (
+            row_a["route"] == "X",
+            "M-55 must be a run-level (X) condition, not a feature row",
+        ),
+        (
+            "EvidenceRecord" not in row_a["target_field"],
+            "M-55 must not emit an EvidenceRecord itself",
+        ),
+        (
+            "run_level" in row_a["target_field"],
+            "M-55 must target the run level",
+        ),
+        (
+            "observation_origin" in row_a["target_value"],
+            "M-55 must enable EvidenceRecord.observation_origin",
+        ),
+        (
+            "atestación válida" in row_a["conditions"]
+            and "§11.6" in row_a["conditions"],
+            "M-55 must require a valid migration attestation (§11.6)",
+        ),
+        (
+            row_b["decision"] == "conversión condicionada",
+            "M-55 must stay a conditional conversion",
+        ),
+        (
+            row_b["reversibility"].strip() == "B",
+            "M-55 must keep reversibility B",
+        ),
+        (
+            "migration_attestations" in contract_text,
+            "contract must state that migration_attestations preserves the "
+            "external attestation",
+        ),
+        (
+            "no genera `EvidenceRecord`" in contract_text
+            or "no genera EvidenceRecord" in contract_text,
+            "contract must state that M-55 does not itself generate EvidenceRecords",
+        ),
+        (
+            "migration_attestations" in matrix_text,
+            "matrix must document that M-55 relies on migration_attestations",
+        ),
+    ]
+    return checks
+
+
 def coverage_ids(text: str) -> list[str]:
     start = text.index("## 5. Cobertura exigida")
     end = text.index("## 6. Criterios de aceptación")
@@ -297,6 +472,15 @@ def main() -> int:
             b[row_id]["reversibility"].strip() == "—",
             f"{row_id}: blocked/quarantined row must use reversibility —",
         )
+
+    # M-55: run-level provenance condition, not an EvidenceRecord emitter.
+    report.check(
+        "M-55" in a and "M-55" in b,
+        "matrix must declare M-55 (migration attestation)",
+    )
+    if "M-55" in a and "M-55" in b:
+        for condition, message in m55_checks(a["M-55"], b["M-55"], contract_text, matrix_text):
+            report.check(condition, message)
 
     actual_counts = Counter(row["decision"] for row in b.values())
     report.check(
@@ -465,64 +649,10 @@ def main() -> int:
         mrevs = [b[m]["reversibility"].strip() for m in mats if m in b]
         if not mrevs:
             continue
-        # Component set of the matrix side (composite rows use "/").
-        matrix_components: set[str] = set()
-        for mr in mrevs:
-            matrix_components |= {part.strip() for part in mr.split("/")}
-        vector_components = {part.strip() for part in vrev.split("/")}
-
-        # Correspondence: a converted result cannot coexist with — on every
-        # referenced matrix row, and vice versa.
-        result = vector["result"]
-        converted_result = (
-            "`observed`" in result
-            and "quarantined" not in result
-            and "rejected" not in result
-            and "rechazo" not in result
-        )
-        if vrev == "—":
-            report.check(
-                "quarantined" in result or "rejected" in result or "rechazo" in result,
-                f"{vid}: reversibility — requires a quarantined/rejected result",
-            )
-        if converted_result:
-            report.check(
-                vrev != "—",
-                f"{vid}: a converted result cannot have reversibility —",
-            )
-
-        # Multi-ref vectors: each component must be supported by at least one
-        # referenced matrix row; single-ref vectors must match (or be a sub-case
-        # of a composite matrix row).
-        if len(mats) == 1:
-            mr = mrevs[0]
-            if "/" in mr:
-                # composite matrix row: vector must be one of its components
-                report.check(
-                    vrev in {part.strip() for part in mr.split("/")},
-                    f"{vid}: reversibility {vrev!r} is not a sub-case of "
-                    f"{mats[0]} ({mr!r})",
-                )
-            else:
-                report.check(
-                    vrev == mr,
-                    f"{vid}: reversibility {vrev!r} disagrees with "
-                    f"{mats[0]} ({mr!r})",
-                )
-        else:
-            for comp in vector_components:
-                report.check(
-                    comp in matrix_components or comp == "—",
-                    f"{vid}: reversibility component {comp!r} is not supported by "
-                    f"its matrix rows {mats}",
-                )
-
-        # Detect B kept while every referenced matrix row is — (same result).
-        if vrev == "B" and matrix_components == {"—"}:
-            report.check(
-                False,
-                f"{vid}: keeps reversibility B while its matrix rows are —",
-            )
+        for condition, message in reversibility_checks(
+            vid, vrev, mats, mrevs, vector["result"]
+        ):
+            report.check(condition, message)
 
     # --------------------------------------------------------- textual hygiene
     for path in (CONTRACT, MATRIX, VECTORS):

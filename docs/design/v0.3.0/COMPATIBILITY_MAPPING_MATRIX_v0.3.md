@@ -198,7 +198,7 @@ Etiquetas de decisión (clasificación documental, **no** enums de StoryScope):
 | M-52 | D | fila §3 | estado presente/opuesto/neutral | dimensión | observación de dimensión | `DimensionProfile` | `coverage_status=descriptive_assessed`; estado/dirección en informe | no se emite `EvidenceRecord` |
 | M-53 | D | `Presente–opuesto` | sin observación o sin justificación | dimensión | contraevidencia de dimensión no demostrada | — | — | cuarentena (`CE-009`/`CE-010`) |
 | M-54 | F | fila §4 | dos observaciones con spans separados | característica §4 | observaciones independientes | dos `EvidenceRecord` | `:obs:1`, `:obs:2` | sublocalizador determinista |
-| M-55 | X | ejecución | origen atestable durante la migración | ejecución | procedencia demostrable por atestación válida del operador | `EvidenceRecord` | conversión permitida; `observation_origin` refleja la atestación | atestación válida (§11.6) |
+| M-55 | X | ejecución | origen atestable durante la migración | ejecución | procedencia demostrable por atestación válida del operador | `run_level` | habilita `EvidenceRecord.observation_origin` en las filas completas; no emite registros por sí misma | atestación válida (§11.6) |
 
 ### 2.3 Tabla B — requisitos, pérdida y decisión
 
@@ -258,7 +258,7 @@ Etiquetas de decisión (clasificación documental, **no** enums de StoryScope):
 | M-52 | — | — | ruta D: estado de dimensión | no aplica | estado/dirección solo en informe | B | preservación sin conversión | contrato §8.1, §9.2 |
 | M-53 | — | — | `Presente–opuesto` de dimensión sin justificación | — | fila no convertida | D | conversión no segura | contrato §9.2; `CE-010` |
 | M-54 | dos spans separados | obligatorio | sublocalizador determinista | — | ninguna | A | conversión condicionada | contrato §11.2 |
-| M-55 | atestación válida | — | §11.6: atestación de migración permite la conversión | no aplica | ninguna | B | conversión condicionada | contrato §11.6 |
+| M-55 | atestación válida (`migration_attestations`) | — | §11.6: atestación de migración permite la conversión | no aplica | ninguna | B | conversión condicionada | contrato §11.6 |
 
 ### 2.4 Recuento de decisiones
 
@@ -323,6 +323,8 @@ El registro no contiene umbrales por historia. Un valor «alto» o «4/5» no ba
 | contraevidencia sin span/justificación propios | no se puede emitir | cuarentena (`CE-009`/`CE-010`/`CE-039`) |
 
 **Nota sobre la dirección en la ruta D.** En la ruta D, `legacy_direction` es opcional. Su ausencia o su no normalización **no** convierten la fila en no convertible ni activan rechazo (R-D07); el token se conserva literalmente y no se usa para producir `research_alignment`. La única exigencia de la ruta D es un `legacy_state` válido (R-01, R-D01). Por eso M-13…M-16 y M-28/M-52 preservan filas sin depender de una dirección. R-02 se aplica únicamente a entradas F+.
+
+**Nota sobre M-55.** M-55 es una condición de procedencia **a nivel de ejecución**, no una fila de característica. No genera `EvidenceRecord` por sí misma: habilita el establecimiento de `EvidenceRecord.observation_origin` en las filas completas que ya cumplen los demás requisitos. La atestación externa se conserva en `migration_attestations`, que sigue siendo la fuente de verdad de la atestación; el dominio solo refleja el valor. Sin atestación válida, la conversión no se habilita (R-29/R-37, `CE-032`/`CE-036`).
 
 ### 3.3 Pérdidas potenciales
 

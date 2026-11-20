@@ -712,6 +712,8 @@ El `origin_detail` de cada `EvidenceRecord` **puede** incluir la clave `legacy_l
 
 No se crean nuevos enums en el dominio. La atestación es un mecanismo de procesamiento externo con su propia procedencia, coherente con la cuarentena (§14).
 
+**M-55 no genera `EvidenceRecord` por sí misma.** Es una condición de procedencia **a nivel de ejecución**: habilita el establecimiento de `EvidenceRecord.observation_origin` en las filas completas que ya cumplen los demás requisitos (estado, valor explícito, span, versión de Registry). `migration_attestations` conserva la atestación externa y sigue siendo su fuente de verdad; el dominio solo refleja el valor, no lo sustituye. Sin atestación válida, M-55 no habilita la conversión y se aplican R-29/R-37 (`CE-032`/`CE-036`).
+
 ---
 
 ## 12. Idempotencia
