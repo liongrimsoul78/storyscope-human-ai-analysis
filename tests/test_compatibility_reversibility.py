@@ -12,6 +12,7 @@ the failure is detected by the command the CI runs.
 """
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -223,12 +224,16 @@ class ValidatorIntegrationTests(unittest.TestCase):
         self._tmp.cleanup()
 
     def run_validator(self) -> subprocess.CompletedProcess[str]:
+        # Force UTF-8 in the child: the validator prints "—" and accents, and
+        # Windows would otherwise emit them in the legacy console code page.
+        env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
         return subprocess.run(
             [sys.executable, "validation/validate_compatibility_docs.py"],
             cwd=self.root,
             capture_output=True,
             text=True,
             encoding="utf-8",
+            env=env,
         )
 
     def mutate(self, name: str, old: str, new: str) -> None:
