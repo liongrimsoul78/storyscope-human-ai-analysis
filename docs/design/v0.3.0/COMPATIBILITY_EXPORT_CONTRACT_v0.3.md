@@ -736,6 +736,17 @@ No se crean nuevos enums en el dominio. La atestación es un mecanismo de proces
 
 **Concordancia entre vías.** Si coexisten declaración directa y atestación válida, sus valores de procedencia deben coincidir. Una discrepancia no se resuelve silenciosamente: se rechaza la ejecución (`CE-032`). Si solo una vía está presente y es válida, se acepta. Si ninguna está presente o es válida, se rechaza (R-29/R-37).
 
+**Correspondencia por observación.** Una atestación solo autoriza la observación a la que apuntan sus localizadores:
+
+1. El localizador compuesto esperado se determina según §11.2 a partir de `(source_document_sha256, section, row_index, feature_name_slug)`.
+2. El sublocalizador esperado se determina añadiendo `:obs:<n>` según la regla determinista de §11.2.
+3. La coincidencia se comprueba por igualdad exacta de `legacy_locator` y `legacy_sublocator` con los valores esperados de la observación.
+4. Si una atestación apunta a otra observación, no habilita la actual: se ignora para R-29 de esta observación (no se produce autorización cruzada).
+5. Si existen varias atestaciones en la misma ejecución, cada una solo autoriza la observación cuyos localizadores coinciden.
+6. Una atestación válida correspondiente a una fila no autoriza automáticamente otras filas, aunque compartan contenido.
+
+M-55 sigue siendo condición run-level; la autorización efectiva de procedencia se evalúa por observación. No se convierte en fila de característica ni genera `EvidenceRecord`.
+
 **M-55 no genera `EvidenceRecord` por sí misma.** Es una condición de procedencia **a nivel de ejecución**: habilita el establecimiento de `EvidenceRecord.observation_origin` en las filas completas que ya cumplen los demás requisitos (estado, valor explícito, span, versión de Registry). `migration_attestations` conserva la atestación externa y sigue siendo su fuente de verdad; el dominio solo refleja el valor, no lo sustituye. Sin atestación válida, M-55 no habilita la conversión y se aplican R-29/R-37 (`CE-032`/`CE-036`).
 
 ---

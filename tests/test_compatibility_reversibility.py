@@ -29,6 +29,7 @@ from validate_compatibility_docs import (  # noqa: E402
     ALLOWED_ATTESTED_ORIGINS,
     ATTESTATION_REQUIRED_FIELDS,
     attestation_checks,
+    attestation_is_valid,
     m55_checks,
     provenance_checks,
     reversibility_checks,
@@ -133,7 +134,7 @@ class M55Tests(unittest.TestCase):
         "migration_attestations conserva la atestación externa. "
         "M-55 no genera `EvidenceRecord` por sí misma. "
         "Concordancia entre vías. R-29a. attested_origin authorization_status "
-        + " ".join(ATTESTATION_REQUIRED_FIELDS)
+        "ISO 8601 UTC " + " ".join(ATTESTATION_REQUIRED_FIELDS)
     )
     MATRIX = "M-55 | atestación válida (`migration_attestations`)"
 
@@ -210,7 +211,7 @@ class ProvenancePathTests(unittest.TestCase):
         "migration_attestations conserva la atestación externa. "
         "M-55 no genera `EvidenceRecord` por sí misma. "
         "Concordancia entre vías. R-29a. attested_origin authorization_status "
-        + " ".join(ATTESTATION_REQUIRED_FIELDS)
+        "ISO 8601 UTC " + " ".join(ATTESTATION_REQUIRED_FIELDS)
     )
 
     def valid_attestation(self, origin: str = "human_annotation") -> dict:
@@ -253,7 +254,7 @@ class AttestationValidityTests(unittest.TestCase):
         "migration_attestations conserva la atestación externa. "
         "M-55 no genera `EvidenceRecord` por sí misma. "
         "Concordancia entre vías. R-29a. attested_origin authorization_status "
-        + " ".join(ATTESTATION_REQUIRED_FIELDS)
+        "ISO 8601 UTC " + " ".join(ATTESTATION_REQUIRED_FIELDS)
     )
 
     def base(self, **overrides: str) -> dict:
@@ -306,6 +307,121 @@ class AttestationValidityTests(unittest.TestCase):
             all(condition for condition, _ in checks),
             failures(checks),
         )
+
+
+    def test_spaces_only_fields_fail(self) -> None:
+        entry = self.base(basis="   ")
+        checks = attestation_checks(entry, None, self.CONTRACT)
+        messages = " ".join(failures(checks))
+        self.assertIn("basis", messages)
+
+    def test_malformed_iso_date_fails(self) -> None:
+        entry = self.base(attested_at_utc="not-a-date")
+        checks = attestation_checks(entry, None, self.CONTRACT)
+        messages = " ".join(failures(checks))
+        self.assertIn("ISO 8601", messages)
+
+    def test_non_utc_timezone_fails(self) -> None:
+        entry = self.base(attested_at_utc="2026-11-19T00:00:00+02:00")
+        checks = attestation_checks(entry, None, self.CONTRACT)
+        messages = " ".join(failures(checks))
+        self.assertIn("ISO 8601", messages)
+
+    def test_locator_mismatch_fails(self) -> None:
+        entry = self.base()
+        checks = attestation_checks(
+            entry, None, self.CONTRACT, expected_locator="other:locator"
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("legacy_locator must match", messages)
+
+    def test_sublocator_mismatch_fails(self) -> None:
+        entry = self.base()
+        checks = attestation_checks(
+            entry, None, self.CONTRACT, expected_sublocator="other:sub"
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("legacy_sublocator must match", messages)
+
+    def test_not_applicable_with_direct_declaration_passes_direct_path(self) -> None:
+        # not_applicable alone does not enable M-55, but a valid direct
+        # declaration keeps the provenance path valid.
+        checks = provenance_checks(
+            "human_annotation", self.base(authorization_status="not_applicable"),
+            self.CONTRACT,
+        )
+        self.assertEqual(failures(checks), [])
+
+    def test_not_applicable_alone_fails_r29(self) -> None:
+        checks = provenance_checks(
+            None, self.base(authorization_status="not_applicable"), self.CONTRACT
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+
+class ObservationCorrespondenceTests(unittest.TestCase):
+    """Attestations only authorize the observation they point to."""
+
+    CONTRACT = (
+        "migration_attestations conserva la atestación externa. "
+        "M-55 no genera `EvidenceRecord` por sí misma. "
+        "Concordancia entre vías. R-29a. attested_origin authorization_status "
+        "ISO 8601 UTC " + " ".join(ATTESTATION_REQUIRED_FIELDS)
+    )
+
+    def base(self, **overrides: str) -> dict:
+        entry = {
+            "legacy_locator": "loc-A",
+            "legacy_sublocator": "sub-A",
+            "attested_origin": "human_annotation",
+            "attested_by": "op-1",
+            "attested_at_utc": "2026-11-19T00:00:00Z",
+            "basis": "fundamento",
+            "protocol_version": "0.2.3",
+            "authorization_status": "authorized",
+        }
+        entry.update(overrides)
+        return entry
+
+    def test_two_attestations_for_different_observations(self) -> None:
+        att_a = self.base()
+        att_b = self.base(
+            legacy_locator="loc-B", legacy_sublocator="sub-B",
+            attested_origin="external_model",
+        )
+        # Observation A: only att_a matches and is valid.
+        checks_a = provenance_checks(
+            None, [att_a, att_b], self.CONTRACT,
+            expected_locator="loc-A", expected_sublocator="sub-A",
+        )
+        self.assertEqual(failures(checks_a), [])
+        # Observation B: only att_b matches and is valid.
+        checks_b = provenance_checks(
+            None, [att_a, att_b], self.CONTRACT,
+            expected_locator="loc-B", expected_sublocator="sub-B",
+        )
+        self.assertEqual(failures(checks_b), [])
+
+    def test_valid_attestation_does_not_authorize_another_observation(self) -> None:
+        att_a = self.base()
+        # Observation B has no matching attestation.
+        checks = provenance_checks(
+            None, [att_a], self.CONTRACT,
+            expected_locator="loc-B", expected_sublocator="sub-B",
+        )
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_invalid_attestation_cannot_satisfy_r29(self) -> None:
+        att = self.base(authorization_status="not_authorized")
+        checks = provenance_checks(None, [att], self.CONTRACT)
+        messages = " ".join(failures(checks))
+        self.assertIn("R-29", messages)
+
+    def test_attestation_is_valid_rejects_non_authorized(self) -> None:
+        att = self.base(authorization_status="not_authorized")
+        self.assertFalse(attestation_is_valid(att))
 
 
 class ValidatorIntegrationTests(unittest.TestCase):

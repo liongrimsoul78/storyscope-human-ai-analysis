@@ -22,6 +22,7 @@ from __future__ import annotations
 import re
 import sys
 from collections import Counter
+from datetime import datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -387,17 +388,98 @@ ATTESTATION_REQUIRED_FIELDS = [
 ]
 
 
+def _is_utc_iso8601(value: object) -> bool:
+    if not isinstance(value, str) or value.strip() == "":
+        return False
+    text = value.strip()
+    if text.endswith("Z") or text.endswith("z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return False
+    if parsed.tzinfo is None:
+        return False
+    return parsed.utcoffset() == timedelta(0)
+
+
+def attestation_is_valid(
+    attestation: dict,
+    expected_locator: str | None = None,
+    expected_sublocator: str | None = None,
+) -> bool:
+    """Single source of truth for attestation validity (used by R-29/M-55)."""
+    if not isinstance(attestation, dict) or not attestation:
+        return False
+    for field_name in ATTESTATION_REQUIRED_FIELDS:
+        value = attestation.get(field_name)
+        if value is None or str(value).strip() == "":
+            return False
+    if attestation.get("attested_origin") not in ALLOWED_ATTESTED_ORIGINS:
+        return False
+    if attestation.get("authorization_status") != "authorized":
+        return False
+    if not _is_utc_iso8601(attestation.get("attested_at_utc")):
+        return False
+    if expected_locator is not None and attestation.get("legacy_locator") != expected_locator:
+        return False
+    if expected_sublocator is not None and attestation.get("legacy_sublocator") != expected_sublocator:
+        return False
+    return True
+
+
+def _is_utc_iso8601(value: object) -> bool:
+    if not isinstance(value, str) or value.strip() == "":
+        return False
+    text = value.strip()
+    if text.endswith("Z") or text.endswith("z"):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return False
+    if parsed.tzinfo is None:
+        return False
+    return parsed.utcoffset() == timedelta(0)
+
+
+def attestation_is_valid(
+    attestation: dict,
+    expected_locator: str | None = None,
+    expected_sublocator: str | None = None,
+) -> bool:
+    """Single source of truth for attestation validity (used by R-29/M-55)."""
+    if not isinstance(attestation, dict) or not attestation:
+        return False
+    for field_name in ATTESTATION_REQUIRED_FIELDS:
+        value = attestation.get(field_name)
+        if value is None or str(value).strip() == "":
+            return False
+    if attestation.get("attested_origin") not in ALLOWED_ATTESTED_ORIGINS:
+        return False
+    if attestation.get("authorization_status") != "authorized":
+        return False
+    if not _is_utc_iso8601(attestation.get("attested_at_utc")):
+        return False
+    if expected_locator is not None and attestation.get("legacy_locator") != expected_locator:
+        return False
+    if expected_sublocator is not None and attestation.get("legacy_sublocator") != expected_sublocator:
+        return False
+    return True
+
+
 def attestation_checks(
     attestation: dict,
     direct_origin: str | None,
     contract_text: str,
+    expected_locator: str | None = None,
+    expected_sublocator: str | None = None,
 ) -> list[tuple[bool, str]]:
     """Validate one migration attestation against the documented rules."""
     checks: list[tuple[bool, str]] = []
 
-    # Required fields must be present and non-empty.
     for field_name in ATTESTATION_REQUIRED_FIELDS:
-        value = attestation.get(field_name)
+        value = attestation.get(field_name) if isinstance(attestation, dict) else None
         checks.append(
             (
                 value is not None and str(value).strip() != "",
@@ -405,7 +487,7 @@ def attestation_checks(
             )
         )
 
-    origin = attestation.get("attested_origin")
+    origin = attestation.get("attested_origin") if isinstance(attestation, dict) else None
     checks.append(
         (
             origin in ALLOWED_ATTESTED_ORIGINS,
@@ -413,15 +495,15 @@ def attestation_checks(
         )
     )
 
-    status = attestation.get("authorization_status")
+    status = attestation.get("authorization_status") if isinstance(attestation, dict) else None
     checks.append(
         (
             status in {"authorized", "not_authorized", "not_applicable"},
             f"authorization_status {status!r} is not a documented value",
         )
     )
-    # Only "authorized" enables M-55; "not_authorized" invalidates the entry.
-    # "not_applicable" has no documented criterion and stays pending.
+
+    # "not_authorized" invalidates the attestation; "not_applicable" stays pending.
     checks.append(
         (
             status != "not_authorized",
@@ -429,7 +511,28 @@ def attestation_checks(
         )
     )
 
-    # Concordance: direct declaration and attestation must agree when both exist.
+    checks.append(
+        (
+            _is_utc_iso8601(attestation.get("attested_at_utc")) if isinstance(attestation, dict) else False,
+            "attested_at_utc must be a valid ISO 8601 timestamp in UTC",
+        )
+    )
+
+    if expected_locator is not None:
+        checks.append(
+            (
+                (attestation.get("legacy_locator") == expected_locator) if isinstance(attestation, dict) else False,
+                "legacy_locator must match the observed record locator",
+            )
+        )
+    if expected_sublocator is not None:
+        checks.append(
+            (
+                (attestation.get("legacy_sublocator") == expected_sublocator) if isinstance(attestation, dict) else False,
+                "legacy_sublocator must match the observed record sublocator",
+            )
+        )
+
     if direct_origin is not None and attestation:
         checks.append(
             (
@@ -438,7 +541,6 @@ def attestation_checks(
             )
         )
 
-    # Contract must document the concordance rule and the attestation fields.
     checks.append(
         (
             "Concordancia entre vías" in contract_text,
@@ -451,34 +553,53 @@ def attestation_checks(
             "contract must document every migration_attestations field",
         )
     )
+    checks.append(
+        (
+            "ISO 8601" in contract_text and "UTC" in contract_text,
+            "contract must state the ISO 8601 UTC requirement",
+        )
+    )
     return checks
 
 
 def provenance_checks(
     direct_origin: str | None,
-    attestation: dict,
+    attestations,
     contract_text: str,
+    expected_locator: str | None = None,
+    expected_sublocator: str | None = None,
 ) -> list[tuple[bool, str]]:
-    """Apply R-29: at least one valid provenance path, with concordance."""
+    """Apply R-29/R-29a using a single validity rule for attestations."""
+    if isinstance(attestations, dict):
+        attestations = [attestations] if attestations else []
+    attestations = attestations or []
+
     checks: list[tuple[bool, str]] = []
     has_direct = direct_origin in ALLOWED_ATTESTED_ORIGINS
-    has_attestation = bool(attestation) and all(
-        attestation.get(f) not in (None, "") for f in ATTESTATION_REQUIRED_FIELDS
-    ) and attestation.get("attested_origin") in ALLOWED_ATTESTED_ORIGINS
+
+    valid_matching = [
+        a for a in attestations
+        if attestation_is_valid(a, expected_locator, expected_sublocator)
+    ]
 
     checks.append(
         (
-            has_direct or has_attestation,
+            has_direct or bool(valid_matching),
             "R-29: at least one valid provenance path is required",
         )
     )
-    if direct_origin is not None and attestation:
+
+    if has_direct and valid_matching:
         checks.append(
             (
-                attestation.get("attested_origin") == direct_origin,
+                all(a.get("attested_origin") == direct_origin for a in valid_matching),
                 "R-29a: direct and attested origins must agree",
             )
         )
+
+    if attestations and not valid_matching and not has_direct:
+        checks.append((False, "R-29: no attestation satisfies the validity rules"))
+
     checks.append(
         (
             "R-29a" in contract_text,
