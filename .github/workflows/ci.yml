@@ -74,6 +74,10 @@ jobs:
         working-directory: _export
         run: python validation/validate_compatibility_docs.py
 
+      - name: Run compatibility reversibility adversarial tests
+        working-directory: _export
+        run: python -m unittest discover -s tests -p "test_compatibility_reversibility.py" -v
+
       - name: Verify SHA-256 manifest (strict, canonical Git export)
         working-directory: _export
         run: python validation/verify_manifest.py --strict
